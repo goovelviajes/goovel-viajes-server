@@ -24,7 +24,7 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @Type(() => Date)
-  @IsDate({ message: 'La fecha de nacimiento no es valida' })
+  @IsDate({ message: 'Invalid date' })
   birthdate: Date;
 
   @IsString()

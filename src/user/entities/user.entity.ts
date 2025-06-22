@@ -31,13 +31,13 @@ export class User {
   @Column({ type: 'date' })
   birthdate: Date;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deletedAt: Date;
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
