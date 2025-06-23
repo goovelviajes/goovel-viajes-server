@@ -3,6 +3,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -37,6 +38,23 @@ export class UserService {
   private async isUserAlreadyExists(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
     return !!user;
+  }
+
+  async getUserByEmail(email: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email },
+        select: ['id', 'email', 'password'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting user by email');
+    }
   }
 
   findAll() {

@@ -23,8 +23,7 @@ export class RegisterDto {
   password: string;
 
   @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate({ message: 'Invalid date' })
+  @IsString()
   birthdate: Date;
 
   @IsString()
