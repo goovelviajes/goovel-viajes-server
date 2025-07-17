@@ -1,16 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
 import 'dotenv/config';
+import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     UserModule,
     AuthModule,
+    // Para verificar en que enviroment se esta ejecutando la app.
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+    }),
+    // Conexion con la DB.
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -19,10 +24,11 @@ import 'dotenv/config';
       password: process.env.DB_PASSWORD,
       database: 'test-template',
       entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
-      synchronize: true,
+      synchronize: true, //Cambiar a false en produccion
+      // dropSchema: true
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule { }

@@ -4,5 +4,4 @@ export interface CreateUserDto {
   email: string;
   password: string;
   birthdate: Date;
-  phone?: string;
 }

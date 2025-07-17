@@ -1,73 +1,128 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+ <a href="#"><img src="https://i.ibb.co/hFy2VLV5/ESCUDO.png"  alt="ESCUDO" border="0"></a>
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
+<h2 align="center"><strong>Club Atlético Juarense</strong></h1>
+  
+<p align="center"><strong>Tecnologias Utilizadas:</strong></p>
+
+<div align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/NestJS-red?style=for-the-badge&logo=nestjs&logoColor=D62828&labelColor=white&color=D62828" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/MySQL-white?style=for-the-badge&logo=mysql&logoColor=blue&labelColor=white&color=blue" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/TypeORM-red?style=for-the-badge&logo=typeorm&logoColor=F86624&labelColor=white&color=D62828" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/Swagger-red?style=for-the-badge&logo=swagger&logoColor=0AD3FF&labelColor=white&color=0AD3FF" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/Jest-black?style=for-the-badge&logo=jest&logoColor=DE1A1A&labelColor=white&color=DE1A1A" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/Typescript-black?style=for-the-badge&logo=typescript&logoColor=2B50AA&labelColor=white&color=2B50AA" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/badge/JWT-green?style=for-the-badge&logo=jsonwebtokens&logoColor=FF8C42&labelColor=white&color=FF8C42" alt="NPM Version" /></a>
+
+</p></div>
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+  <br>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Descripción
 
-## Installation
+Sitio web centrado en la administracion general del Club Atletico Juarense, donde podran gestionar... 
 
-```bash
-$ npm install
-```
+<br>
 
-## Running the app
+## Instalación
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/tomascardenas96/juarense-backend
+cd juarense-backend
+npm install
 ```
 
-## Test
+<br>
+
+## Variables de Entorno
+
+```env
+DB_HOST=your-database-host
+DB_PORT=3306
+DB_USERNAME=your-username
+DB_PASSWORD=your-password
+DB_NAME=your-database-name
+DB_SYNCHRONIZE=false
+PORT=3000
+SECRET_KEY=supersecret
+```
+
+<br>
+
+## Ejecución en Desarrollo
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev
 ```
 
-## Support
+<br>
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Probar API con Swagger
 
-## Stay in touch
+Una vez corras el servidor, ingresá a:
+```bash
+http://localhost:3010/api
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+<br>
 
-## License
+· Hacé click en "Authorize" e ingresá tu token JWT.
 
-Nest is [MIT licensed](LICENSE).
+· Podés probar todas las rutas directamente desde Swagger UI.
+
+<br>
+
+## Integración con el Frontend
+
+· El frontend debe enviar el token JWT en cada request protegido usando el header:
+
+```makefile
+Authorization: Bearer <token>
+```
+
+<br>
+
+## Estructura del Proyecto
+
+```pgsql
+src/
+│
+├── auth/
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── dto/
+│   └── guards/
+│
+├── user/
+│   ├── user.entity.ts
+│   ├── user.service.ts
+│   └── user.controller.ts
+│ 
+├── common/
+├── category/
+├── discipline/
+├── family-member/
+├── fee-payment/
+├── group/
+├── payment-method/
+├── payment-month/
+├── user-enrollment/
+│
+├── main.ts
+└── app.module.ts
+```
+
+## Autor
+
+Tomás Cárdenas 
+<br>
+<br>
+🔗[Tomascardenas.me](https://tomascardenas.me)
+<br>
+🔗[Linkedin](https://www.linkedin.com/in/tomascardenas96/)

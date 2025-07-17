@@ -1,12 +1,12 @@
+
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
-import { Role } from '../enums/role.enum';
 
 @Entity()
 export class User {
@@ -40,9 +40,12 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @Column({ type: 'enum', enum: Role, default: Role.USER })
-  role: Role;
-
   @Column({ default: false })
-  isEmailConfirmed: boolean;
+  isAdmin: boolean;
+
+  @Column()
+  dni: string;
+
+  @Column({ nullable: true })
+  address: string;
 }

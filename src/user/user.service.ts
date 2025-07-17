@@ -5,16 +5,17 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ILike, Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -45,6 +46,7 @@ export class UserService {
       const user = await this.userRepository.findOne({
         where: { email },
         select: ['id', 'email', 'password'],
+        withDeleted: true
       });
 
       if (!user) {
@@ -53,23 +55,87 @@ export class UserService {
 
       return user;
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error getting user by email');
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async getUserById(id: string) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id }, withDeleted: true });
+
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error trying to get user by id');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  /**
+   * Actualiza la información adicional del usuario, con datos específicos
+   * que no se establecieron en el registro inicial (por ejemplo, datos de facturación).
+   */
+  async updateUserInformation(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      const parsedDate = new Date(updateUserDto.birthdate + "T00:00:00");
+      const isValidDate = !isNaN(parsedDate.getTime())
+
+      if (updateUserDto.birthdate && !isValidDate) {
+        throw new BadRequestException("Invalid date format")
+      }
+
+      const user = await this.userRepository.preload({
+        id,
+        ...updateUserDto,
+        birthdate: updateUserDto.birthdate ? parsedDate : undefined
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error updating user information");
+    }
   }
 
-  update(id: number, updateUserDto: any) {
-    return `This action updates a #${id} user`;
+  async softDeleteUser(id: string) {
+    try {
+      const deleteUser = await this.userRepository.softDelete(id);
+
+      if (deleteUser.affected === 0) {
+        throw new NotFoundException('User not found')
+      }
+
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException("Error soft deleting user")
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async restoreDeletedUser(id: string) {
+    try {
+      const restoreUser = await this.userRepository.restore(id);
+
+      console.log(restoreUser)
+    } catch (error) {
+      throw new InternalServerErrorException("Error restoring deleted user")
+    }
   }
 }

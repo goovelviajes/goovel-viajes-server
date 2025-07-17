@@ -1,77 +1,82 @@
 import {
-  BadRequestException,
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
-import { UserService } from 'src/user/user.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { JwtService } from '@nestjs/jwt';
-
-@Injectable()
-export class AuthService {
-  constructor(
-    private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-  ) {}
-
-  async register(registerDto: RegisterDto) {
-    try {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(registerDto.password, salt);
-
-      const birthdate = new Date(registerDto.birthdate + 'T00:00:00');
-
-      if (isNaN(birthdate.getTime())) {
-        throw new BadRequestException('Invalid birthdate format');
+    BadRequestException,
+    HttpException,
+    Injectable,
+    InternalServerErrorException,
+    UnauthorizedException,
+  } from '@nestjs/common';
+  import * as bcrypt from 'bcryptjs';
+  import { UserService } from '../user/user.service';
+  import { LoginDto } from './dto/login.dto';
+  import { RegisterDto } from './dto/register.dto';
+  import { JwtService } from '@nestjs/jwt';
+  
+  @Injectable()
+  export class AuthService {
+    constructor(
+      private readonly userService: UserService,
+      private readonly jwtService: JwtService,
+    ) {}
+  
+    async register(registerDto: RegisterDto) {
+      try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(registerDto.password, salt);
+  
+        //conversion y validacion de la fecha de nacimiento
+        const birthdate = new Date(registerDto.birthdate + 'T00:00:00');
+        //se transforma la fecha a un objeto date
+        
+        if (isNaN(birthdate.getTime())) {//si el valor es invalido lanza una exception 
+          throw new BadRequestException('Invalid birthdate format');
+        }
+        
+        //preparacion de un objeto usuario
+        const userToCreate = {
+          ...registerDto,
+          birthdate,
+          password: hashedPassword,
+        };//este objeto se enviara a userService reamplazando la 
+        // contraseña por la hasheada y asegurando que la fecha sea tipo Date
+  
+        await this.userService.create(userToCreate);//creacion del usuario en la DB llamando al servicio
+  
+        return {
+          message: 'Registration Successful',
+        };
+      } catch (error) {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new InternalServerErrorException('Error user register');
       }
-
-      const userToCreate = {
-        ...registerDto,
-        birthdate,
-        password: hashedPassword,
-      };
-
-      await this.userService.create(userToCreate);
-
-      return {
-        message: 'Registration Successful',
-      };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
+    }
+  
+    async login(loginDto: LoginDto) {
+      try {
+        const { email, password } = loginDto;
+        const user = await this.userService.getUserByEmail(email);
+  
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword)
+          throw new UnauthorizedException('Invalid credentials');
+  
+        const secretKey = process.env.SECRET_KEY;
+        if (!secretKey) throw new UnauthorizedException('Secret key not found');
+  
+        const payload = { sub: user.id, email: user.email };
+  
+        const token = await this.jwtService.signAsync(payload, {
+          secret: secretKey,
+        });
+  
+        return { access_token: token };
+      } catch (error) {
+        if (error instanceof HttpException) {
+          throw error;
+        }
+        throw new InternalServerErrorException('Error user login');
       }
-      throw new InternalServerErrorException('Error user register');
     }
   }
-
-  async login(loginDto: LoginDto) {
-    try {
-      const { email, password } = loginDto;
-      const user = await this.userService.getUserByEmail(email);
-
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword)
-        throw new UnauthorizedException('Invalid credentials');
-
-      const secretKey = process.env.SECRET_KEY;
-      if (!secretKey) throw new UnauthorizedException('Secret key not found');
-
-      const payload = { sub: user.id, email: user.email };
-
-      const token = await this.jwtService.signAsync(payload, {
-        secret: secretKey,
-      });
-
-      return { access_token: token };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error user login');
-    }
-  }
-}
+  
