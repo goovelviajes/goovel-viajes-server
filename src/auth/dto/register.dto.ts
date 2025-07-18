@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { AuthProvider } from '../enums/auth-provider.enum';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Adrian', description: 'Nombre del nuevo usuario' })
@@ -20,7 +21,6 @@ export class RegisterDto {
   @IsNotEmpty()
   password: string;
 
-
   @ApiProperty({ example: '2025-05-22', description: 'Fecha de nacimiento del usuario' })
   @IsNotEmpty()
   @IsString()
@@ -30,4 +30,9 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   dni: string;
+
+  @ApiProperty({ example: 'local', enum: AuthProvider })
+  @IsString()
+  @IsOptional()
+  provider: AuthProvider;
 }

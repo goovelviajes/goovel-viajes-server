@@ -1,7 +1,12 @@
+import { AuthProvider } from "src/auth/enums/auth-provider.enum";
+
 export interface CreateUserDto {
   name: string;
-  lastname: string;
+  lastname?: string;
   email: string;
-  password: string;
-  birthdate: Date;
+  picture?: string;
+  googleId?: string;
+  provider: AuthProvider;
+  password?: string;
+  birthdate?: Date;
 }

@@ -13,7 +13,7 @@ export class AuthController {
 
   @ApiOperation({ summary: 'Registro de un nuevo usuario' })
   @ApiCreatedResponse({ description: 'Registration Successful' })
-  @ApiBadRequestResponse({ description: 'Invalid birthdate format or email is already existent' })
+  @ApiBadRequestResponse({ description: 'Invalid birthdate format or email is already existent or password is neccesary for local registration' })
   @ApiInternalServerErrorResponse({ description: 'Error user register or creating user' })
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
@@ -41,5 +41,10 @@ export class AuthController {
   @Get()
   getActiveUser(@ActiveUser() user: ActiveUserInterface) {
     return user;
+  }
+
+  @Post('google')
+  loginWithGoogle(@Body() body: { idToken: string }) {
+    return this.authService.loginWithGoogle(body.idToken)
   }
 }

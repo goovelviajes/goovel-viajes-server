@@ -1,4 +1,5 @@
 
+import { AuthProvider } from 'src/auth/enums/auth-provider.enum';
 import {
   Column,
   CreateDateColumn,
@@ -22,11 +23,11 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ select: false })
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
 
   @Column({ nullable: true, unique: true })
-  phone: string;
+  phone?: string;
 
   @Column({ type: 'date' })
   birthdate: Date;
@@ -47,5 +48,14 @@ export class User {
   dni: string;
 
   @Column({ nullable: true })
-  address: string;
+  picture?: string;
+
+  @Column({ nullable: true })
+  address?: string;
+
+  @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
+  provider: AuthProvider;
+
+  @Column({ nullable: true })
+  googleId?: string;
 }
