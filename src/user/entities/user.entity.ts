@@ -17,7 +17,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   lastname: string;
 
   @Column({ unique: true })
@@ -29,7 +29,7 @@ export class User {
   @Column({ nullable: true, unique: true })
   phone?: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   birthdate: Date;
 
   @CreateDateColumn()
@@ -44,7 +44,7 @@ export class User {
   @Column({ default: false })
   isAdmin: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   dni: string;
 
   @Column({ nullable: true })

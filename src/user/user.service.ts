@@ -29,6 +29,7 @@ export class UserService {
 
       return await this.userRepository.save(newUser);
     } catch (error) {
+      console.log(error)
       if (error instanceof HttpException) {
         throw error;
       }
@@ -45,13 +46,9 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        select: ['id', 'email', 'password'],
+        select: ['id', 'name', 'email', 'password', 'picture'],
         withDeleted: true
       });
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
 
       return user;
     } catch (error) {

@@ -43,6 +43,10 @@ export class AuthController {
     return user;
   }
 
+  @ApiOperation({ summary: 'Obtener usuario activo (obtenido desde el token)' })
+  @ApiUnauthorizedResponse({ description: 'Error login with Google' })
+  @ApiInternalServerErrorResponse({ description: 'Error login with Google or getting user by email' })
+  @ApiBearerAuth('access-token')
   @Post('google')
   loginWithGoogle(@Body() body: { idToken: string }) {
     return this.authService.loginWithGoogle(body.idToken)

@@ -126,6 +126,9 @@ export class AuthService {
       };
 
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException("Error login with Google")
     }
   }
