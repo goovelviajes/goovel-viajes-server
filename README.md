@@ -1,9 +1,6 @@
 <p align="center">
- <a href="#"><img src="https://i.ibb.co/hFy2VLV5/ESCUDO.png"  alt="ESCUDO" border="0"></a>
+ <a href="#"><img src="https://ibb.co/xtF7BFnL"  alt="Goovel logo" border="0"></a>
 </p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
 
 <h2 align="center"><strong>Club Atlético Juarense</strong></h1>
   
