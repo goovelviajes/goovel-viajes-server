@@ -1,8 +1,8 @@
 <p align="center">
- <a href="#"><img src="https://ibb.co/xtF7BFnL"  alt="Goovel logo" border="0"></a>
+ <a href="https://imgbb.com/"><img src="https://i.ibb.co/W4V2MVr5/Captura-de-pantalla-2025-08-18-152822.png" alt="Captura-de-pantalla-2025-08-18-152822" border="0" /></a>
 </p>
 
-<h2 align="center"><strong>Club Atlético Juarense</strong></h1>
+<h2 align="center"><strong>Goovel</strong></h1>
   
 <p align="center"><strong>Tecnologias Utilizadas:</strong></p>
 
@@ -21,17 +21,25 @@
 
   <br>
 
-## Descripción
+## Descripción general
 
-Sitio web centrado en la administracion general del Club Atletico Juarense, donde podran gestionar... 
+Goovel es una aplicacion movil de viajes compartidos que permite a los usuarios:
+ - **Ser conductor**: Ofrecer asientos disponibles en sus vehiculos.
+ - **Ser pasajero**: Encontrar viajes publicados a un destino en especifico y compartir gastos.
+ - **Enviar paqueteria**: Coordinar envios de paquetes utilizando viajes existentes
+
+La plataforma busca:
+ - Reducir costos de transporte.
+ - Aprovechar viajes ya planificados para transportar personas o paquetes.
+ - Ofrecer seguridad mediante calificaciones y perfiles verificados.
 
 <br>
 
 ## Instalación
 
 ```bash
-git clone https://github.com/tomascardenas96/juarense-backend
-cd juarense-backend
+git clone https://github.com/tomascardenas96/Goovel-backend
+cd Goovel-backend
 npm install
 ```
 
@@ -102,14 +110,6 @@ src/
 │   └── user.controller.ts
 │ 
 ├── common/
-├── category/
-├── discipline/
-├── family-member/
-├── fee-payment/
-├── group/
-├── payment-method/
-├── payment-month/
-├── user-enrollment/
 │
 ├── main.ts
 └── app.module.ts
