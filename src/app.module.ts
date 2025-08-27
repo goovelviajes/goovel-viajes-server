@@ -22,7 +22,7 @@ import { UserModule } from './user/user.module';
       port: Number(process.env.DB_PORT),
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      database: 'test-template',
+      database: 'goovel',
       entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
       synchronize: true, //Cambiar a false en produccion
       // dropSchema: true

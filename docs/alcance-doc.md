@@ -63,19 +63,25 @@ El sistema establecerá el trayecto acordado y mostrará el recorrido mediante u
 ### 3.7 Sistema de notificaciones
 
 - Notificaciones push o vía correo sobre:
+
   - Confirmación de reservas.
   - Cancelaciones de viajes.
   - Mensajes entre conductor y pasajero / remitente.
   - Recordatorios de viajes próximos.
 
-### 3.8 Seguridad y privacidad
+### 3.8 Panel administrativo
+
+- Ver reportes de los usuarios.
+- Eliminar / banear usuarios que muestren un comportamiento irregular.
+- Eliminar viajes publicados que sean sospechosos.
+
+### 3.9 Seguridad y privacidad
 
 - Autenticación y autorizacion segura con token JWT.
 - Almacenamiento seguro de datos personales y documentación de vehículos.
 - Posibilidad de denunciar usuarios o viajes sospechosos.
 
 <br>
-
 
 ## 4. Alcance del proyecto
 

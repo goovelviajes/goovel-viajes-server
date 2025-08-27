@@ -21,7 +21,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Template API')
+    .setTitle('Goovel API')
     .setDescription('Acá se mostrarán los endpoints necesarios para toda la aplicacion')
     .setVersion('1.0')
     .addTag('Template')
