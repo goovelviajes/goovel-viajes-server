@@ -8,8 +8,6 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    UserModule,
-    AuthModule,
     // Para verificar en que enviroment se esta ejecutando la app.
     ConfigModule.forRoot({
       isGlobal: true,
@@ -27,6 +25,8 @@ import { UserModule } from './user/user.module';
       synchronize: true, //Cambiar a false en produccion
       // dropSchema: true
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
