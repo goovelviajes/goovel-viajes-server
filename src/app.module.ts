@@ -5,6 +5,14 @@ import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { ProfileModule } from './profile/profile.module';
+import { VehicleModule } from './vehicle/vehicle.module';
+import { NotificationModule } from './notification/notification.module';
+import { ReportModule } from './report/report.module';
+import { MessageModule } from './message/message.module';
+import { RatingModule } from './rating/rating.module';
+import { JourneyModule } from './journey/journey.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -27,6 +35,14 @@ import { UserModule } from './user/user.module';
     }),
     UserModule,
     AuthModule,
+    ProfileModule,
+    VehicleModule,
+    NotificationModule,
+    ReportModule,
+    MessageModule,
+    RatingModule,
+    JourneyModule,
+    BookingModule,
   ],
   controllers: [],
   providers: [],
