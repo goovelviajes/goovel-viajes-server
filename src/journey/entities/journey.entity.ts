@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { JourneyType } from "../enums/journey-type.enum";
 import { User } from "src/user/entities/user.entity";
 import { Vehicle } from "src/vehicle/entities/vehicle.entity";
 import { JourneyStatus } from "../enums/journey-status.enum";
+import { Booking } from "src/booking/entities/booking.entity";
 
 @Entity()
 export class Journey {
@@ -38,4 +39,7 @@ export class Journey {
 
     @ManyToOne(() => Vehicle, (vehicle) => vehicle.journeys, { onDelete: 'CASCADE' })
     vehicle: Vehicle;
+
+    @OneToMany(() => Booking, (booking) => booking.journey)
+    bookings: Booking[];
 }
