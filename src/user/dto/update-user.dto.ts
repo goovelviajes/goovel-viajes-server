@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateUserDto {
     @ApiPropertyOptional({
@@ -50,25 +50,4 @@ export class UpdateUserDto {
     @IsOptional()
     @IsString()
     address?: string;
-
-    @ApiPropertyOptional({
-        example: "20132223334",
-        description: "Cuit actualizado"
-    })
-    @IsOptional()
-    @IsString()
-    cuit?: string;
-
-    @ApiPropertyOptional({
-        example: "1234567891234567890123",
-        description: "CBU actualizado (22 digitos)"
-    })
-    @IsOptional()
-    @IsString()
-    cbu?: string;
-
-    @ApiPropertyOptional({ example: "true", description: "Adherido a debito automatico", type: "boolean" })
-    @IsOptional()
-    @IsBoolean()
-    isAutoDebit?: boolean;
 }

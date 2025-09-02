@@ -15,7 +15,7 @@ import { AuthProvider } from './enums/auth-provider.enum';
 
 @Injectable()
 export class AuthService {
-  private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  // private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
   constructor(
     private readonly userService: UserService,
@@ -24,7 +24,9 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     try {
-      if (registerDto.provider === 'local' && !registerDto.password) {
+      if (
+        // registerDto.provider === 'local' &&
+        !registerDto.password) {
         throw new BadRequestException('Password is neccesary for local registration');
       }
 
@@ -94,49 +96,49 @@ export class AuthService {
     }
   }
 
-  async loginWithGoogle(idToken: string) {
-    try {
-      const ticket = await this.client.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID
-      })
+  // async loginWithGoogle(idToken: string) {
+  //   try {
+  //     const ticket = await this.client.verifyIdToken({
+  //       idToken,
+  //       audience: process.env.GOOGLE_CLIENT_ID
+  //     })
 
-      const payload = ticket.getPayload();
+  //     const payload = ticket.getPayload();
 
-      const email = payload?.email;
-      const name = payload?.name;
-      const picture = payload?.picture;
-      const googleId = payload?.sub;
+  //     const email = payload?.email;
+  //     const name = payload?.name;
+  //     const picture = payload?.picture;
+  //     const googleId = payload?.sub;
 
 
-      if (!email) throw new UnauthorizedException('Invalid Google token');
+  //     if (!email) throw new UnauthorizedException('Invalid Google token');
 
-      let user = await this.userService.getUserByEmail(email)
+  //     let user = await this.userService.getUserByEmail(email)
 
-      if (!user) {
-        user = await this.userService.create({
-          email,
-          name,
-          picture,
-          googleId,
-          provider: AuthProvider.GOOGLE,
-        });
-      }
+  //     if (!user) {
+  //       user = await this.userService.create({
+  //         email,
+  //         name,
+  //         picture,
+  //         googleId,
+  //         provider: AuthProvider.GOOGLE,
+  //       });
+  //     }
 
-      const SECRET_KEY = process.env.SECRET_KEY;
+  //     const SECRET_KEY = process.env.SECRET_KEY;
 
-      const token = this.jwtService.sign({ sub: user.id, email: user.email }, { secret: SECRET_KEY });
+  //     const token = this.jwtService.sign({ sub: user.id, email: user.email }, { secret: SECRET_KEY });
 
-      return {
-        token,
-        user,
-      };
+  //     return {
+  //       token,
+  //       user,
+  //     };
 
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException("Error login with Google")
-    }
-  }
+  //   } catch (error) {
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     }
+  //     throw new InternalServerErrorException("Error login with Google")
+  //   }
+  // }
 }

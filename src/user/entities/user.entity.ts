@@ -1,13 +1,16 @@
 
-import { AuthProvider } from 'src/auth/enums/auth-provider.enum';
+// import { AuthProvider } from 'src/auth/enums/auth-provider.enum';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from 'typeorm';
+import { RolesEnum } from '../enums/roles.enum';
+import { Profile } from 'src/profile/entities/profile.entity';
 
 @Entity()
 export class User {
@@ -26,36 +29,28 @@ export class User {
   @Column({ nullable: true })
   password?: string;
 
-  @Column({ nullable: true, unique: true })
-  phone?: string;
-
   @Column({ type: 'date', nullable: true })
   birthdate: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
 
-  @Column({ default: false })
-  isAdmin: boolean;
+  @Column({ default: RolesEnum.MEMBER })
+  role: RolesEnum;
 
-  @Column({ nullable: true })
-  dni: string;
+  @OneToOne(() => Profile, (profile) => profile.user)
+  profile: Profile;
 
-  @Column({ nullable: true })
-  picture?: string;
+  // ---> Habilitar para Google:
+  // @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
+  // provider: AuthProvider;
 
-  @Column({ nullable: true })
-  address?: string;
-
-  @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
-  provider: AuthProvider;
-
-  @Column({ nullable: true })
-  googleId?: string;
+  // @Column({ nullable: true })
+  // googleId?: string;
 }
