@@ -4,6 +4,7 @@ import { User } from "src/user/entities/user.entity";
 import { Vehicle } from "src/vehicle/entities/vehicle.entity";
 import { JourneyStatus } from "../enums/journey-status.enum";
 import { Booking } from "src/booking/entities/booking.entity";
+import { Rating } from "src/rating/entities/rating.entity";
 
 @Entity()
 export class Journey {
@@ -42,4 +43,7 @@ export class Journey {
 
     @OneToMany(() => Booking, (booking) => booking.journey)
     bookings: Booking[];
+
+    @OneToMany(() => Rating, (rating) => rating.journey)
+    ratings: Rating[];
 }
