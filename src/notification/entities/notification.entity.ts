@@ -7,9 +7,6 @@ export class Notification {
     id: string;
 
     @Column()
-    reason: string;
-
-    @Column()
     message: string;
 
     @Column({ name: 'is_read', default: false })
