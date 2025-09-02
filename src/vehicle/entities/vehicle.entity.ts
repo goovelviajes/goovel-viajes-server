@@ -1,6 +1,7 @@
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { VehicleType } from "../enums/vehicle-type.enum";
+import { Journey } from "src/journey/entities/journey.entity";
 
 @Entity()
 export class Vehicle {
@@ -27,4 +28,7 @@ export class Vehicle {
 
     @ManyToOne(() => User, (user) => user.vehicles, { onDelete: 'CASCADE' })
     user: User;
+
+    @OneToMany(() => Journey, (journey) => journey.vehicle)
+    journeys: Journey[];
 }
