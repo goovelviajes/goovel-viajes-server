@@ -5,13 +5,13 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { Profile } from 'src/profile/entities/profile.entity';
+import { ProfileService } from 'src/profile/profile.service';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtService } from '@nestjs/jwt';
-import { OAuth2Client } from 'google-auth-library';
-import { AuthProvider } from './enums/auth-provider.enum';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +20,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly profileService: ProfileService
   ) { }
 
   async register(registerDto: RegisterDto) {
@@ -41,11 +42,16 @@ export class AuthService {
         throw new BadRequestException('Invalid birthdate format');
       }
 
+      const profile = new Profile();
+
+      profile.profileName = await this.profileService.getUniqueProfileName(registerDto.name);
+
       //preparacion de un objeto usuario
       const userToCreate = {
         ...registerDto,
         birthdate,
         password: hashedPassword,
+        profile
       };//este objeto se enviara a userService reamplazando la 
       // contraseña por la hasheada y asegurando que la fecha sea tipo Date
 

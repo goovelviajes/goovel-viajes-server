@@ -27,7 +27,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid credentials or secret key not found', })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiInternalServerErrorResponse({
-    description: 'Error user login',
+    description: 'Error user login or getting unique user profile name',
   })
   @Post('login')
   login(@Body() loginDto: LoginDto) {
