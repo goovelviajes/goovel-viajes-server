@@ -36,8 +36,6 @@ export class VehicleService {
         }
     }
 
-
-
     async getVehicleList(userId: string) {
         try {
             return await this.vehicleRepository.find({ where: { user: { id: userId } } })

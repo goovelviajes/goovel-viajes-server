@@ -6,6 +6,7 @@ import { CreateVehicleDto } from './dtos/create-vehicle.dto';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { CreatedResponseDto } from './dtos/created-response.dto';
+import { VehicleResponseDto } from './dtos/vehicle-response.dto';
 
 @Controller('vehicle')
 export class VehicleController {
@@ -23,8 +24,8 @@ export class VehicleController {
   }
 
   @UseGuards(TokenGuard)
-  @ApiOkResponse({type: ''})
-  @ApiInternalServerErrorResponse({description: 'Error getting vehicles list'})
+  @ApiOkResponse({ type: [VehicleResponseDto] })
+  @ApiInternalServerErrorResponse({ description: 'Error getting vehicles list' })
   @Get()
   getVehicleList(@ActiveUser() { id }: ActiveUserInterface) {
     return this.vehicleService.getVehicleList(id)
