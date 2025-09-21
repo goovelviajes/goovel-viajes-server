@@ -20,6 +20,9 @@ export class Vehicle {
     @Column()
     color: string;
 
+    @Column({ unique: true })
+    plate: string;
+
     @Column({ type: 'enum', enum: VehicleType })
     type: VehicleType;
 
