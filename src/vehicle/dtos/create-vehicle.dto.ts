@@ -30,9 +30,9 @@ export class CreateVehicleDto {
     @IsNotEmpty()
     type: VehicleType;
 
-    @ApiProperty({ example: 'ABC123', description: 'Patente del vehiculo' })
+    @ApiProperty({ example: 'ABC123 o AB123CD', description: 'Patente del vehiculo' })
     @IsNotEmpty()
-    @IsPlate({ message: 'plate must have ABC123 format' })
+    @IsPlate()
     plate: string;
 
     @ApiProperty({ example: '1980', description: 'Año de fabricación' })
