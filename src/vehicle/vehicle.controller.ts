@@ -1,12 +1,13 @@
-import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, Delete, Param } from '@nestjs/common';
 import { VehicleService } from './vehicle.service';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
 import { TokenGuard } from 'src/auth/guard/token.guard';
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOperation, ApiOkResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { CreatedResponseDto } from './dtos/created-response.dto';
 import { VehicleResponseDto } from './dtos/vehicle-response.dto';
+import { DeletedReponseDto } from './dtos/deleted-response.dto';
 
 @Controller('vehicle')
 export class VehicleController {
@@ -24,10 +25,21 @@ export class VehicleController {
   }
 
   @UseGuards(TokenGuard)
+  @ApiOperation({ summary: 'Obtener el listado de vehiculos propios' })
   @ApiOkResponse({ type: [VehicleResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Error getting vehicles list' })
   @Get()
   getVehicleList(@ActiveUser() { id }: ActiveUserInterface) {
     return this.vehicleService.getVehicleList(id)
+  }
+
+  @UseGuards(TokenGuard)
+  @ApiOperation({ summary: 'Eliminar un vehiculo propio' })
+  @ApiOkResponse({ type: DeletedReponseDto })
+  @ApiNotFoundResponse({ description: 'Vehicle not found in the list' })
+  @ApiInternalServerErrorResponse({ description: 'Error deleting vehicle' })
+  @Delete(':id')
+  deleteVehicle(@Param('id') vehicleId: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
+    return this.vehicleService.deleteVehicle(vehicleId, activeUserId)
   }
 }
