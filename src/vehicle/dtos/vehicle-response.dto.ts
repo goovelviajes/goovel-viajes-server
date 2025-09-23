@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { VehicleType } from "../enums/vehicle-type.enum";
 
-export class CreatedResponseDto {
+export class VehicleResponseDto {
     @ApiProperty({ example: 'Fiat' })
     brand: string;
 
