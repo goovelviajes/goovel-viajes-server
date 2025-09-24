@@ -1,8 +1,8 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Vehicle } from './entities/vehicle.entity';
 import { Repository } from 'typeorm';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
+import { Vehicle } from './entities/vehicle.entity';
 
 @Injectable()
 export class VehicleService {
@@ -41,6 +41,28 @@ export class VehicleService {
             return await this.vehicleRepository.find({ where: { user: { id: userId } } })
         } catch (error) {
             throw new InternalServerErrorException("Error getting vehicles list")
+        }
+    }
+
+    async deleteVehicle(vehicleId: string, activeUserId: string) {
+        try {
+            const vehicle = await this.vehicleRepository.find({ where: { id: vehicleId, user: { id: activeUserId } } })
+
+            if (vehicle.length === 0) {
+                throw new NotFoundException("Vehicle not found in your list")
+            }
+
+            await this.vehicleRepository.delete(vehicle);
+
+            return {
+                message: "Vehicle deleted successfully",
+                id: vehicleId,
+            }
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException("Error deleting vehicle")
         }
     }
 }
