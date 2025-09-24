@@ -2,6 +2,9 @@ import { ApiProperty } from "@nestjs/swagger";
 import { VehicleType } from "../enums/vehicle-type.enum";
 
 export class VehicleResponseDto {
+    @ApiProperty({ example: '534f3a72-dc32-4cb5-988f-9725300b9a9d' })
+    id: string;
+
     @ApiProperty({ example: 'Fiat' })
     brand: string;
 
@@ -25,7 +28,3 @@ export class VehicleResponseDto {
 
     @ApiProperty({ example: { id: 'e342f8e2-523b-43b4-bf5c-fee3725d6ac7' } })
     user: { id: string }
-
-    @ApiProperty({ example: '534f3a72-dc32-4cb5-988f-9725300b9a9d' })
-    id: string;
-}
