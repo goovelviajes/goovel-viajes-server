@@ -66,11 +66,13 @@ export class VehicleService {
             }
             throw new InternalServerErrorException("Error modifying vehicle")
         }
-      
+    }
+
     async getVehicleList(userId: string) {
         try {
             return await this.vehicleRepository.find({ where: { user: { id: userId } } })
         } catch (error) {
             throw new InternalServerErrorException("Error getting vehicles list")
         }
+    }
 }

@@ -1,13 +1,12 @@
-import { Body, Controller, Post, Get, UseGuards, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { VehicleService } from './vehicle.service';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
 import { TokenGuard } from 'src/auth/guard/token.guard';
-import { CreatedResponseDto } from './dtos/created-response.dto';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { VehicleResponseDto } from './dtos/vehicle-response.dto';
 import { UpdateVehicleDto } from './dtos/update-vehicle.dto';
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 @Controller('vehicle')
 export class VehicleController {
@@ -34,13 +33,5 @@ export class VehicleController {
   @Patch(':id')
   modifyVehicle(@Param('id') vehicleId: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface, @Body() updateVehicleDto: UpdateVehicleDto) {
     return this.vehicleService.modifyVehicle(vehicleId, activeUserId, updateVehicleDto)
-  }
-
-  @UseGuards(TokenGuard)
-  @ApiOkResponse({ type: [VehicleResponseDto] })
-  @ApiInternalServerErrorResponse({ description: 'Error getting vehicles list' })
-  @Get()
-  getVehicleList(@ActiveUser() { id }: ActiveUserInterface) {
-    return this.vehicleService.getVehicleList(id)
   }
 }

@@ -28,3 +28,4 @@ export class VehicleResponseDto {
 
     @ApiProperty({ example: { id: 'e342f8e2-523b-43b4-bf5c-fee3725d6ac7' } })
     user: { id: string }
+}
