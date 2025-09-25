@@ -18,4 +18,4 @@ import { ProfileModule } from 'src/profile/profile.module';
   controllers: [AuthController],
   providers: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }
