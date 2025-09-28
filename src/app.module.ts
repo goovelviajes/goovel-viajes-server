@@ -13,6 +13,7 @@ import { MessageModule } from './message/message.module';
 import { RatingModule } from './rating/rating.module';
 import { JourneyModule } from './journey/journey.module';
 import { BookingModule } from './booking/booking.module';
+import { JourneyRequestModule } from './journey-request/journey-request.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { BookingModule } from './booking/booking.module';
     RatingModule,
     JourneyModule,
     BookingModule,
+    JourneyRequestModule,
   ],
   controllers: [],
   providers: [],
