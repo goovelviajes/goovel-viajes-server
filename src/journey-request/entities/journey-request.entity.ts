@@ -17,8 +17,8 @@ export class JourneyRequest {
     @Column({ name: 'requested_time', type: 'timestamp' })
     requestedTime: Date;
 
-    @Column({ name: 'requested_seats', type: 'int', default: 1 })
-    requestedSeats: number;
+    @Column({ name: 'requested_seats', type: 'int', default: 1, nullable: true })
+    requestedSeats?: number;
 
     @Column({
         name: 'proposed_price',
@@ -41,6 +41,21 @@ export class JourneyRequest {
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
+
+    @Column({ type: 'decimal', nullable: true, name: 'package_weight' })
+    packageWeight?: number;
+
+    @Column({ type: 'decimal', nullable: true, name: 'package_length' })
+    packageLength?: number;
+
+    @Column({ type: 'decimal', nullable: true, name: 'package_width' })
+    packageWidth?: number;
+
+    @Column({ type: 'decimal', nullable: true, name: 'package_height' })
+    packageHeight?: number;
+
+    @Column({ nullable: true, name: 'package_description' })
+    packageDescription?: string;
 
     @ManyToOne(() => User, (user) => user.journeyRequests, { onDelete: 'CASCADE' })
     user: User;
