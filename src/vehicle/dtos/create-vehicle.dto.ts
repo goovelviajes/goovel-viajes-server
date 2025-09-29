@@ -40,6 +40,7 @@ export class CreateVehicleDto {
         /^(#([0-9a-fA-F]{6})|rgb\(\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*,\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*,\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*\))$/,
         { message: 'El color debe estar en formato HEX (#RRGGBB) o RGB (rgb(r, g, b))' }
     )
+    color?: string;
 
     @ApiProperty({
         example: VehicleType.CAR,
@@ -49,6 +50,7 @@ export class CreateVehicleDto {
     @IsEnum(VehicleType, { message: 'El tipo de vehículo debe ser uno de los valores permitidos' })
     @IsNotEmpty()
     @Transform(({ value }) => value?.toLowerCase())
+    type: VehicleType;
 
     @ApiProperty({ example: 'Formatos permitidos: ABC123, 123ABC, AB123CD o A000AAA', description: 'Patente del vehiculo' })
     @IsNotEmpty()
