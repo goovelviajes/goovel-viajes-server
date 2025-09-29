@@ -1,36 +1,56 @@
-import { IsInt, Min, Max, IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsInt, Min, Max, IsString, IsNotEmpty, IsEnum, Length, Matches, IsPositive } from 'class-validator';
 import { VehicleType } from '../enums/vehicle-type.enum';
 import { IsPlate } from '../decorators/is-plate.decorator';
 import { ApiOperation, ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateVehicleDto {
-    @ApiProperty({ example: 'Fiat', description: 'Marca del vehiculo' })
+    @ApiProperty({ example: 'Fiat', description: 'Marca del vehículo' })
     @IsString()
     @IsNotEmpty()
+    @Length(2, 50)
+    @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { message: 'La marca solo puede contener letras y espacios' })
+    @Transform(({ value }) => value?.trim())
     brand: string;
 
-    @ApiProperty({ example: 'Spazio', description: 'Modelo del vehiculo' })
+    @ApiProperty({ example: 'Spazio', description: 'Modelo del vehículo' })
     @IsString()
     @IsNotEmpty()
+    @Length(1, 50)
+    @Matches(/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-]+$/, {
+        message: 'El modelo solo puede contener letras, números, espacios o guiones'
+    })
+    @Transform(({ value }) => value?.trim())
     model: string;
 
     @ApiProperty({ example: '3', description: 'Asientos disponibles totales' })
     @IsInt()
     @Min(1)
-    @Max(10)
+    @Max(15)
+    @IsPositive()
     capacity: number;
 
-    @ApiProperty({ example: '#ffffff', description: 'Color del vehiculo' })
+    @ApiProperty({
+        example: '#ffffff',
+        description: 'Color del vehículo en formato HEX (#RRGGBB) o RGB (rgb(r, g, b))'
+    })
     @IsString()
     @IsNotEmpty()
-    color: string;
+    @Matches(
+        /^(#([0-9a-fA-F]{6})|rgb\(\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*,\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*,\s*(?:[0-9]|[1-9][0-9]|1\d{2}|2[0-4]\d|25[0-5])\s*\))$/,
+        { message: 'El color debe estar en formato HEX (#RRGGBB) o RGB (rgb(r, g, b))' }
+    )
 
-    @ApiProperty({ example: 'car', description: 'Tipo de vehiculo' })
-    @IsEnum(VehicleType)
+    @ApiProperty({
+        example: VehicleType.CAR,
+        description: 'Tipo de vehículo',
+        enum: VehicleType
+    })
+    @IsEnum(VehicleType, { message: 'El tipo de vehículo debe ser uno de los valores permitidos' })
     @IsNotEmpty()
-    type: VehicleType;
+    @Transform(({ value }) => value?.toLowerCase())
 
-    @ApiProperty({ example: 'ABC123 o AB123CD', description: 'Patente del vehiculo' })
+    @ApiProperty({ example: 'Formatos permitidos: ABC123, 123ABC, AB123CD o A000AAA', description: 'Patente del vehiculo' })
     @IsNotEmpty()
     @IsPlate()
     plate: string;
