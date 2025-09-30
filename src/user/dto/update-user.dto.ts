@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateUserDto {
     @ApiPropertyOptional({
@@ -8,9 +8,6 @@ export class UpdateUserDto {
     })
     @IsOptional()
     @IsString()
-    @MinLength(2, { message: 'El nombre debe tener al menos 2 caracteres' })
-    @MaxLength(50, { message: 'El nombre no puede superar los 50 caracteres' })
-    @Matches(/^[a-zA-ZÀ-ÿ\s]+$/, { message: 'El nombre solo puede contener letras y espacios' })
     name: string;
 
     @ApiPropertyOptional({
@@ -18,9 +15,7 @@ export class UpdateUserDto {
         description: "Apellido actualizado"
     })
     @IsOptional()
-    @MinLength(2, { message: 'El apellido debe tener al menos 2 caracteres' })
-    @MaxLength(50, { message: 'El apellido no puede superar los 50 caracteres' })
-    @Matches(/^[a-zA-ZÀ-ÿ\s]+$/, { message: 'El apellido solo puede contener letras y espacios' })
+    @IsString()
     lastname?: string;
 
     @ApiPropertyOptional({
