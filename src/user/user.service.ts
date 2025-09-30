@@ -81,7 +81,7 @@ export class UserService {
    * Actualiza la información adicional del usuario, con datos específicos
    * que no se establecieron en el registro inicial (por ejemplo, datos de facturación).
    */
-  async updateUserInformation(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async updateUserInformation(id: string, updateUserDto: UpdateUserDto): Promise<void> {
     try {
       const parsedDate = new Date(updateUserDto.birthdate + "T00:00:00");
       const isValidDate = !isNaN(parsedDate.getTime())
@@ -100,7 +100,7 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      return await this.userRepository.save(user);
+      await this.userRepository.save(user);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
