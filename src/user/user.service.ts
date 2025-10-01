@@ -77,6 +77,24 @@ export class UserService {
     }
   }
 
+  async getUserByIdWithoutPassword(id: string) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id }, withDeleted: true, select: ['id', 'name', 'lastname', 'email', 'birthdate', 'createdAt', 'updatedAt', 'deletedAt', 'role'] });
+
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error trying to get user by id');
+    }
+  }
+
   /**
    * Actualiza la información adicional del usuario, con datos específicos
    * que no se establecieron en el registro inicial (por ejemplo, datos de facturación).
