@@ -4,7 +4,7 @@ import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { JourneyResponseDto } from './dtos/journey-response.dto';
 
 @Controller('journey')
@@ -17,6 +17,7 @@ export class JourneyController {
     description: "Journey successfully created",
     type: JourneyResponseDto,
   })
+  @ApiConflictResponse({ description: 'Journey cannot be repeated' })
   @ApiForbiddenResponse({ description: 'Only one of your own vehicles can be selected' })
   @ApiNotFoundResponse({ description: 'Vehicle not found' })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while creating new journey' })
