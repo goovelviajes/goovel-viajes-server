@@ -1,22 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsObject, IsOptional, IsPositive, IsString, ValidateIf, ValidateNested } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsObject, IsPositive, IsString, ValidateIf, ValidateNested } from "class-validator";
 import { JourneyType } from "../enums/journey-type.enum";
-
-class LocationDto {
-    @ApiProperty({ example: 'Buenos Aires', description: 'Nombre de la ubicación' })
-    @IsString()
-    @IsNotEmpty()
-    name: string;
-
-    @ApiProperty({ example: -34.6037, description: 'Latitud de la ubicación', maximum: 90, minimum: -90 })
-    @IsNumber({ maxDecimalPlaces: 8 })
-    lat: number;
-
-    @ApiProperty({ example: -58.3816, description: 'Longitud de la ubicación', maximum: 180, minimum: -180 })
-    @IsNumber({ maxDecimalPlaces: 8 })
-    lng: number;
-}
+import { LocationDto } from "./location.dto";
 
 export class CreateJourneyDto {
     @ApiProperty({ type: LocationDto })
