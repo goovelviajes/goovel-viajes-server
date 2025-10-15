@@ -9,6 +9,7 @@ import {
     IsOptional,
     IsPositive,
     IsString,
+    Matches,
     Max,
     Min,
     ValidateIf,
@@ -50,30 +51,40 @@ export class CreateRequestDto {
     @Min(1)
     @Max(15)
     requestedSeats?: number;
-
-    @ApiProperty({ example: '5', description: 'Peso del paquete en kilogramos (en caso que el tipo de solicitud sea PACKAGE)' })
-    @ValidateIf((o) => o.type === 'package')
-    @IsNumber()
+    @ApiProperty({ example: '5', description: 'Peso del paquete en kilogramos (solo si el tipo es PACKAGE)' })
+    @ValidateIf(o => o.type === 'package')
+    @IsNumber({ maxDecimalPlaces: 2 }, { message: 'El peso debe ser un número con hasta 2 decimales' })
+    @IsPositive({ message: 'El peso debe ser mayor a 0' })
+    @Max(150, { message: 'El peso no puede superar los 150 kg' })
     packageWeight?: number;
 
-    @ApiProperty({ example: '5', description: 'Longitud del paquete en centimetros (en caso que el tipo de solicitud sea PACKAGE)' })
-    @ValidateIf((o) => o.type === 'package')
-    @IsNumber()
+    @ApiProperty({ example: '50', description: 'Longitud del paquete en centímetros (solo si el tipo es PACKAGE)' })
+    @ValidateIf(o => o.type === 'package')
+    @IsNumber({ maxDecimalPlaces: 2 }, { message: 'La longitud debe ser un número con hasta 2 decimales' })
+    @IsPositive({ message: 'La longitud debe ser mayor a 0' })
+    @Max(1000, { message: 'La longitud no puede superar los 1000 cm (10 m)' })
     packageLength?: number;
 
-    @ApiProperty({ example: '5', description: 'Ancho del paquete en KG (en caso que el tipo de solicitud sea PACKAGE)' })
-    @ValidateIf((o) => o.type === 'package')
-    @IsNumber()
+    @ApiProperty({ example: '40', description: 'Ancho del paquete en centímetros (solo si el tipo es PACKAGE)' })
+    @ValidateIf(o => o.type === 'package')
+    @IsNumber({ maxDecimalPlaces: 2 }, { message: 'El ancho debe ser un número con hasta 2 decimales' })
+    @IsPositive({ message: 'El ancho debe ser mayor a 0' })
+    @Max(200, { message: 'El ancho no puede superar los 200 cm (2 m)' })
     packageWidth?: number;
 
-    @ApiProperty({ example: '5', description: 'Alto del paquete en KG (en caso que el tipo de solicitud sea PACKAGE)' })
-    @ValidateIf((o) => o.type === 'package')
-    @IsNumber()
+    @ApiProperty({ example: '30', description: 'Alto del paquete en centímetros (solo si el tipo es PACKAGE)' })
+    @ValidateIf(o => o.type === 'package')
+    @IsNumber({ maxDecimalPlaces: 2 }, { message: 'La altura debe ser un número con hasta 2 decimales' })
+    @IsPositive({ message: 'La altura debe ser mayor a 0' })
+    @Max(200, { message: 'La altura no puede superar los 200 cm (2 m)' })
     packageHeight?: number;
 
-    @ApiPropertyOptional({ example: 'Paquete con contenido muy fragil', description: 'Descripcion extra del paquete a enviar (en caso que el tipo de solicitud sea PACKAGE)' })
-    @ValidateIf((o) => o.type === 'package')
-    @IsString()
+    @ApiPropertyOptional({ example: 'Paquete con contenido muy frágil', description: 'Descripción extra del paquete (solo si el tipo es PACKAGE)' })
+    @ValidateIf(o => o.type === 'package')
     @IsOptional()
+    @IsString({ message: 'La descripción debe ser texto' })
+    @Matches(/^[a-zA-ZÀ-ÿ0-9\s.,;:()'"!¿?_-]{0,255}$/, {
+        message: 'La descripción contiene caracteres inválidos o supera los 255 caracteres',
+    })
     packageDescription?: string;
 }
