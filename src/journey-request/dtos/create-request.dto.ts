@@ -9,6 +9,7 @@ import {
     IsOptional,
     IsPositive,
     IsString,
+    Max,
     Min,
     ValidateIf,
     ValidateNested
@@ -47,6 +48,7 @@ export class CreateRequestDto {
     @ValidateIf((o) => o.type === 'carpool')
     @IsInt()
     @Min(1)
+    @Max(15)
     requestedSeats?: number;
 
     @ApiProperty({ example: '5', description: 'Peso del paquete en kilogramos (en caso que el tipo de solicitud sea PACKAGE)' })
