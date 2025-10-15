@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Validate } from 'class-validator';
 import { IsAdult } from 'src/common/decorator/is-adult.decorator';
+import { IsValidBirthdate } from 'src/common/decorator/is-valid-birthdate.decorator';
 // import { AuthProvider } from '../enums/auth-provider.enum';
 
 export class RegisterDto {
@@ -29,6 +30,7 @@ export class RegisterDto {
   })
   @IsNotEmpty({ message: 'La fecha de nacimiento es obligatoria' })
   @IsDateString({}, { message: 'La fecha de nacimiento debe tener un formato válido (YYYY-MM-DD)' })
+  @IsValidBirthdate()
   @IsAdult()
   birthdate: string;
 
