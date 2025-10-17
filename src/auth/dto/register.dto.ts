@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Validate } from 'class-validator';
+import { IsAdult } from 'src/common/decorator/is-adult.decorator';
+import { IsValidBirthdate } from 'src/common/decorator/is-valid-birthdate.decorator';
 // import { AuthProvider } from '../enums/auth-provider.enum';
 
 export class RegisterDto {
@@ -21,10 +23,16 @@ export class RegisterDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ example: '2025-05-22', description: 'Fecha de nacimiento del usuario' })
-  @IsNotEmpty()
-  @IsString()
-  birthdate: Date;
+  @ApiProperty({
+    example: "1995-01-24",
+    description: "Fecha de nacimiento en formato YYYY-MM-DD",
+    format: "date"
+  })
+  @IsNotEmpty({ message: 'La fecha de nacimiento es obligatoria' })
+  @IsDateString({}, { message: 'La fecha de nacimiento debe tener un formato válido (YYYY-MM-DD)' })
+  @IsValidBirthdate()
+  @IsAdult()
+  birthdate: string;
 
   // @ApiProperty({ example: 'local', enum: AuthProvider })
   // @IsString()
