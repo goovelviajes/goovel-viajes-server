@@ -17,13 +17,13 @@ export class Journey {
     @Column({ type: 'json' })
     destination: { name: string; lat: number; lng: number };
 
-    @Column({ name: 'departure_time', type: 'time' })
+    @Column({ name: 'departure_time', type: 'timestamp' })
     departureTime: Date;
 
-    @Column({ name: 'available_seats' })
+    @Column({ name: 'available_seats', nullable: true })
     availableSeats: number;
 
-    @Column({ name: 'price_per_seat', type: 'double' })
+    @Column({ name: 'price_per_seat', type: 'decimal', precision: 10, scale: 2, nullable: true })
     pricePerSeat: number;
 
     @CreateDateColumn({ name: 'created_at' })
@@ -32,7 +32,7 @@ export class Journey {
     @Column({ type: 'enum', enum: JourneyType })
     type: JourneyType;
 
-    @Column({ type: 'enum', enum: JourneyStatus })
+    @Column({ type: 'enum', enum: JourneyStatus, default: JourneyStatus.PENDING })
     status: JourneyStatus;
 
     @ManyToOne(() => User, (user) => user.journeys, { onDelete: 'CASCADE' })
