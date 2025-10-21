@@ -12,6 +12,7 @@ import {
     Matches,
     Max,
     Min,
+    Validate,
     ValidateIf,
     ValidateNested
 } from 'class-validator';
@@ -29,16 +30,25 @@ export class CreateRequestDto {
     @IsObject()
     @ValidateNested()
     @Type(() => LocationDto)
+    @Validate((o: CreateRequestDto) =>
+        JSON.stringify(o.origin) !== JSON.stringify(o.destination),
+        { message: 'Origin and destination cannot be equal' }
+    )
     destination: LocationDto;
 
     @ApiProperty({ example: '2025-09-30T00:00:00', description: 'Fecha y horario de partida' })
-    @IsDateString()
+    @IsDateString({}, { message: 'Date must have a valid format (ISO)' })
+    @Validate(o => new Date(o.requestedTime) > new Date(), {
+        message: 'Date must be future',
+    })
     requestedTime: Date;
 
     @ApiPropertyOptional({ example: '5000', description: 'Precio propuesto por el solicitante (puede ser null)' })
     @IsOptional()
     @IsNumber()
     @IsPositive()
+    @Min(100, { message: 'Minimum allowed price is 100' })
+    @Max(100000, { message: 'Maximum allowed price is 100000' })
     proposedPrice?: number;
 
     @ApiProperty({ example: JourneyType.CARPOOL, description: 'Tipo de viaje solicitado (CARPOOL o PACKAGE)' })
