@@ -14,7 +14,7 @@ export class JourneyRequest {
     @Column({ type: 'json' })
     destination: { name: string; lat: number; lng: number };
 
-    @Column({ name: 'requested_time', type: 'timestamp' })
+    @Column({ name: 'requested_time', type: 'datetime' })
     requestedTime: Date;
 
     @Column({ name: 'requested_seats', type: 'int', default: 1, nullable: true })

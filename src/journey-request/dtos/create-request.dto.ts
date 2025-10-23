@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
     IsDateString,
     IsEnum,
@@ -16,6 +16,7 @@ import {
     ValidateIf,
     ValidateNested
 } from 'class-validator';
+import { IsFutureDate } from 'src/common/decorator/is-future-date.decorator';
 import { LocationDto } from 'src/common/dtos/location.dto';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 
@@ -37,10 +38,8 @@ export class CreateRequestDto {
     destination: LocationDto;
 
     @ApiProperty({ example: '2025-09-30T00:00:00', description: 'Fecha y horario de partida' })
-    @IsDateString({}, { message: 'Date must have a valid format (ISO)' })
-    @Validate(o => new Date(o.requestedTime) > new Date(), {
-        message: 'Date must be future',
-    })
+    @Type(() => Date)
+    @IsFutureDate({ message: 'requestedTime must be in the future' })
     requestedTime: Date;
 
     @ApiPropertyOptional({ example: '5000', description: 'Precio propuesto por el solicitante (puede ser null)' })
