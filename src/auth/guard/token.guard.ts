@@ -38,7 +38,7 @@ export class TokenGuard implements CanActivate {
         secret: secretKey,
       });
 
-      const user = await this.userService.getUserById(payload.sub);
+      const user = await this.userService.getUserByIdWithoutPassword(payload.sub);
 
       request['user'] = user;
 

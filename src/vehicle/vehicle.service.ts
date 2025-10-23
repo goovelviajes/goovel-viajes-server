@@ -1,7 +1,8 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
+import { UpdateVehicleDto } from './dtos/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
 
 @Injectable()
@@ -36,6 +37,37 @@ export class VehicleService {
         }
     }
 
+    async modifyVehicle(vehicleId: string, activeUserId: string, updateVehicleDto: UpdateVehicleDto) {
+        try {
+            const vehicle = await this.vehicleRepository
+                .createQueryBuilder('vehicle')
+                .leftJoinAndSelect('vehicle.user', 'user')
+                .select(['vehicle', 'user.id'])
+                .where('vehicle.id = :vehicleId', { vehicleId })
+                .getOne();
+
+            if (!vehicle) {
+                throw new NotFoundException("Vehicle not found")
+            }
+
+            const isOwner = vehicle.user.id === activeUserId;
+
+            if (!isOwner) {
+                throw new ForbiddenException("You must be vehicle owner to modify it")
+            }
+
+            const updatedVehicle = this.vehicleRepository.merge(vehicle, updateVehicleDto);
+            await this.vehicleRepository.save(updatedVehicle);
+
+            return updatedVehicle;
+        } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new InternalServerErrorException("Error modifying vehicle")
+        }
+    }
+
     async getVehicleList(userId: string) {
         try {
             return await this.vehicleRepository.find({ where: { user: { id: userId } } })
@@ -63,6 +95,21 @@ export class VehicleService {
                 throw error;
             }
             throw new InternalServerErrorException("Error deleting vehicle")
+        }
+    }
+
+    async getVehicleById(vehicleId: string) {
+        try {
+            return await this.vehicleRepository
+                .createQueryBuilder("vehicle")
+                .leftJoinAndSelect("vehicle.user", "user")
+                .where("vehicle.id = :vehicleId", { vehicleId })
+                .select([
+                    "vehicle",
+                    "user.id"
+                ]).getOne()
+        } catch (error) {
+            throw new InternalServerErrorException("Error getting vehicle by id")
         }
     }
 }
