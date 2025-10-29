@@ -13,6 +13,7 @@ import { MessageModule } from './message/message.module';
 import { RatingModule } from './rating/rating.module';
 import { JourneyModule } from './journey/journey.module';
 import { BookingModule } from './booking/booking.module';
+import { JourneyRequestModule } from './journey-request/journey-request.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { BookingModule } from './booking/booking.module';
       database: 'goovel',
       entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
       synchronize: true, //Cambiar a false en produccion
+      timezone: '-03:00', // 👈 Fuerza la zona horaria de Argentina
       // dropSchema: true
     }),
     UserModule,
@@ -43,6 +45,7 @@ import { BookingModule } from './booking/booking.module';
     RatingModule,
     JourneyModule,
     BookingModule,
+    JourneyRequestModule,
   ],
   controllers: [],
   providers: [],
