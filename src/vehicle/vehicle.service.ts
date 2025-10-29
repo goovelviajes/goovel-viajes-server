@@ -97,4 +97,19 @@ export class VehicleService {
             throw new InternalServerErrorException("Error deleting vehicle")
         }
     }
+
+    async getVehicleById(vehicleId: string) {
+        try {
+            return await this.vehicleRepository
+                .createQueryBuilder("vehicle")
+                .leftJoinAndSelect("vehicle.user", "user")
+                .where("vehicle.id = :vehicleId", { vehicleId })
+                .select([
+                    "vehicle",
+                    "user.id"
+                ]).getOne()
+        } catch (error) {
+            throw new InternalServerErrorException("Error getting vehicle by id")
+        }
+    }
 }

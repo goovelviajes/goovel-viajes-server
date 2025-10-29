@@ -1,5 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsDateString, IsOptional, IsString } from "class-validator";
+import { IsAdult } from "src/common/decorator/is-adult.decorator";
+import { IsValidBirthdate } from "src/common/decorator/is-valid-birthdate.decorator";
 
 export class UpdateUserDto {
     @ApiPropertyOptional({
@@ -24,8 +26,10 @@ export class UpdateUserDto {
         format: "date"
     })
     @IsOptional()
-    @IsString()
-    birthdate?: Date;
+    @IsDateString({}, { message: 'La fecha de nacimiento debe tener un formato válido (YYYY-MM-DD)' })
+    @IsValidBirthdate()
+    @IsAdult()
+    birthdate?: string;
 
     @ApiPropertyOptional({
         example: "2281443322",

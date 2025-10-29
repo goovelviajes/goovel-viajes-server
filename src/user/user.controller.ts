@@ -20,12 +20,13 @@ export class UserController {
 
   @UseGuards(TokenGuard)
   @ApiOperation({ summary: 'Actualizar datos especificos del usuario' })
-  @ApiOkResponse({ type: UserResponseDto })
+  @ApiNoContentResponse()
   @ApiBadRequestResponse({ description: "Invalid date format" })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiInternalServerErrorResponse({ description: 'Error updating user information' })
   @ApiBearerAuth('access-token')
   @Patch()
+  @HttpCode(204)  
   updateUserInformation(@ActiveUser() { id }: ActiveUserInterface, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUserInformation(id, updateUserDto)
   }
