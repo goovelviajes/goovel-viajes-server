@@ -1,10 +1,10 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { JourneyService } from './journey.service';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { JourneyResponseDto } from './dtos/journey-response.dto';
 
 @Controller('journey')
@@ -27,4 +27,16 @@ export class JourneyController {
     return this.journeyService.createJourney(activeUser, createJourneyDto)
   }
 
+  @ApiOperation({ summary: 'Cancelar un viaje publicado' })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: 'Journey not found' })
+  @ApiBadRequestResponse({ description: 'Only a journey with pending status can be cancelled' })
+  @ApiForbiddenResponse({ description: 'User must be journey owner' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while cancelling journey' })
+  @UseGuards(TokenGuard)
+  @HttpCode(204)
+  @Patch(':id')
+  cancelJourney(@Param('id', ParseUUIDPipe) id: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
+    return this.journeyService.cancelJourney(id, activeUserId);
+  }
 }
