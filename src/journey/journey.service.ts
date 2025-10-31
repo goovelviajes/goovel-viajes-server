@@ -112,6 +112,15 @@ export class JourneyService {
           name: journey.user.name,
           lastname: journey.user.lastname,
         },
+        vehicle: {
+          id: journey.vehicle.id,
+          brand: journey.vehicle.brand,
+          model: journey.vehicle.model,
+          capacity: journey.vehicle.capacity,
+          color: journey.vehicle.color,
+          type: journey.vehicle.type,
+          year: journey.vehicle.year,
+        }
       }));
     } catch (error) {
       throw new InternalServerErrorException("Error getting list of journeys")
