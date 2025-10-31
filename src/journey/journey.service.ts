@@ -71,7 +71,6 @@ export class JourneyService {
       if (error instanceof HttpException) {
         throw error;
       }
-      console.error(error);
       throw new InternalServerErrorException('Error creating journey');
     }
   }
@@ -95,7 +94,6 @@ export class JourneyService {
         .getOne();
 
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException('Error finding repeated journeys');
     }
   }
@@ -118,17 +116,43 @@ export class JourneyService {
         throw error;
       }
       throw new InternalServerErrorException("Error cancelling journey")
-      }
-      console.error(error);
-      throw new InternalServerErrorException('Error creating journey');
+    }
+  }
+
+  async getPendingJourneys() {
+    try {
+      // Obtenemos la lista de viajes pendientes con sus respectivas relaciones visibles.
+      const journeys = await this.journeyRepository.find({ where: { status: JourneyStatus.PENDING }, relations: ['user', 'vehicle'] });
+
+      // Devolvemos los datos del usuario resumidos, evitando enviar datos sensibles innecesarios.
+      return journeys.map((journey) => ({
+        ...journey,
+        user: {
+          id: journey.user.id,
+          name: journey.user.name,
+          lastname: journey.user.lastname,
+        },
+        vehicle: {
+          id: journey.vehicle.id,
+          brand: journey.vehicle.brand,
+          model: journey.vehicle.model,
+          capacity: journey.vehicle.capacity,
+          color: journey.vehicle.color,
+          type: journey.vehicle.type,
+          year: journey.vehicle.year,
+        }
+      }));
+    } catch (error) {
+      throw new InternalServerErrorException("Error getting list of journeys")
     }
   }
 
   async getOwnjourneys(id: string) {
     try {
-      return this.journeyRepository.find({ where: { user: { id } }, order: {createdAt: "DESC"} })
+      return this.journeyRepository.find({ where: { user: { id } }, order: { createdAt: "DESC" } })
     } catch (error) {
       throw new InternalServerErrorException("Error getting active user published journeys")
     }
   }
 }
+

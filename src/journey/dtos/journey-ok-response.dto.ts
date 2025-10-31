@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { JourneyStatus } from "../enums/journey-status.enum";
 import { JourneyType } from "../enums/journey-type.enum";
+import { VehicleType } from "src/vehicle/enums/vehicle-type.enum";
 
 export class JourneyOkResponseDto {
     @ApiProperty({
@@ -64,4 +65,29 @@ export class JourneyOkResponseDto {
         example: JourneyStatus.PENDING
     })
     status: JourneyStatus;
+
+    @ApiProperty({
+        description: 'Usuario que realizó la publicación',
+        example: {
+            "id": "809e5c79-4291-4a0f-88b7-e33eed183c4e",
+            "name": "Francisco",
+            "lastname": "Gimenez"
+        }
+    })
+    user: { id: string; name: string; lastname: string; };
+
+    @ApiProperty({
+        description: 'Vehículo a utilizar por el conductor',
+        example: {
+            "id": "f91fd485-87b3-47e6-a81f-65ef72cbedd0",
+            "brand": "Mercedes",
+            "model": "Compressor",
+            "capacity": 4,
+            "color": "#ffffff",
+            "plate": "ABC125",
+            "type": "car",
+            "year": 1980
+        }
+    })
+    vehicle: { id: string; brand: string; model: string; capacity: Number; color: string; type: VehicleType; year: number }
 }
