@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   HttpException,
@@ -70,7 +71,6 @@ export class JourneyService {
       if (error instanceof HttpException) {
         throw error;
       }
-      console.error(error);
       throw new InternalServerErrorException('Error creating journey');
     }
   }
@@ -94,8 +94,31 @@ export class JourneyService {
         .getOne();
 
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException('Error finding repeated journeys');
+    }
+  }
+
+  async cancelJourney(id: string, activeUserId: string) {
+    try {
+      const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+
+      if (!journey) throw new NotFoundException("Journey not found");
+
+      if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
+
+      if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
+
+      await this.journeyRepository.update(id, {
+        status: JourneyStatus.CANCELLED
+      });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error cancelling journey")
+      }
+      console.error(error);
+      throw new InternalServerErrorException('Error creating journey');
     }
   }
 
@@ -124,6 +147,13 @@ export class JourneyService {
       }));
     } catch (error) {
       throw new InternalServerErrorException("Error getting list of journeys")
+    }
+    
+  async getOwnjourneys(id: string) {
+    try {
+      return this.journeyRepository.find({ where: { user: { id } }, order: {createdAt: "DESC"} })
+    } catch (error) {
+      throw new InternalServerErrorException("Error getting active user published journeys")
     }
   }
 }
