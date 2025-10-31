@@ -101,7 +101,18 @@ export class JourneyService {
 
   async getPendingJourneys() {
     try {
-      return await this.journeyRepository.find({ where: { status: JourneyStatus.PENDING } })
+      // Obtenemos la lista de viajes pendientes con sus respectivas relaciones visibles.
+      const journeys = await this.journeyRepository.find({ where: { status: JourneyStatus.PENDING }, relations: ['user', 'vehicle'] });
+
+      // Devolvemos los datos del usuario resumidos, evitando enviar datos sensibles innecesarios.
+      return journeys.map((journey) => ({
+        ...journey,
+        user: {
+          id: journey.user.id,
+          name: journey.user.name,
+          lastname: journey.user.lastname,
+        },
+      }));
     } catch (error) {
       throw new InternalServerErrorException("Error getting list of journeys")
     }

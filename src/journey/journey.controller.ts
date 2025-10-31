@@ -31,6 +31,8 @@ export class JourneyController {
   @ApiOperation({ summary: 'Obtener un listado de los viajes publicados que tengan un estado pendiente' })
   @ApiOkResponse({ type: [JourneyOkResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting list of pending journeys' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
   @Get()
   getPendingJourneys() {
     return this.journeyService.getPendingJourneys()
