@@ -116,9 +116,6 @@ export class JourneyService {
         throw error;
       }
       throw new InternalServerErrorException("Error cancelling journey")
-      }
-      console.error(error);
-      throw new InternalServerErrorException('Error creating journey');
     }
   }
 
@@ -148,12 +145,14 @@ export class JourneyService {
     } catch (error) {
       throw new InternalServerErrorException("Error getting list of journeys")
     }
-    
+  }
+
   async getOwnjourneys(id: string) {
     try {
-      return this.journeyRepository.find({ where: { user: { id } }, order: {createdAt: "DESC"} })
+      return this.journeyRepository.find({ where: { user: { id } }, order: { createdAt: "DESC" } })
     } catch (error) {
       throw new InternalServerErrorException("Error getting active user published journeys")
     }
   }
 }
+

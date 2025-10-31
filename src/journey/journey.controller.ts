@@ -4,7 +4,7 @@ import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiForbiddenResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { JourneyResponseDto } from './dtos/journey-response.dto';
 import { JourneyOkResponseDto } from './dtos/journey-ok-response.dto';
 
@@ -37,6 +37,7 @@ export class JourneyController {
   getPendingJourneys() {
     return this.journeyService.getPendingJourneys()
   }
+  
   @ApiOperation({ summary: 'Cancelar un viaje publicado' })
   @ApiNoContentResponse()
   @ApiNotFoundResponse({ description: 'Journey not found' })
