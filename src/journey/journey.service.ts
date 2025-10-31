@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   HttpException,
@@ -12,6 +13,7 @@ import { ActiveUserInterface } from 'src/common/interface/active-user.interface'
 import { VehicleService } from 'src/vehicle/vehicle.service';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
+import { JourneyStatus } from './enums/journey-status.enum';
 
 @Injectable()
 export class JourneyService {
@@ -95,6 +97,30 @@ export class JourneyService {
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Error finding repeated journeys');
+    }
+  }
+
+  async cancelJourney(id: string, activeUserId: string) {
+    try {
+      const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+
+      if (!journey) throw new NotFoundException("Journey not found");
+
+      if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
+
+      if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
+
+      await this.journeyRepository.update(id, {
+        status: JourneyStatus.CANCELLED
+      });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error cancelling journey")
+      }
+      console.error(error);
+      throw new InternalServerErrorException('Error creating journey');
     }
   }
 
