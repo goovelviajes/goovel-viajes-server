@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { ProfileService } from 'src/profile/profile.service';
+import { Profile } from '../profile/entities/profile.entity';
+import { ProfileService } from '../profile/profile.service';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -95,6 +95,7 @@ export class AuthService {
 
       return { access_token: token };
     } catch (error) {
+      console.error(error)
       if (error instanceof HttpException) {
         throw error;
       }
