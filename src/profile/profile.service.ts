@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
-import { generateRandomProfilename } from 'src/profile/lib/generate-username';
+import { generateRandomProfilename } from '../profile/lib/generate-username';
 
 @Injectable()
 export class ProfileService {

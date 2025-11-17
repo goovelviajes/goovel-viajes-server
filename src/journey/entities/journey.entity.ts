@@ -1,10 +1,10 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { JourneyType } from "../enums/journey-type.enum";
-import { User } from "src/user/entities/user.entity";
-import { Vehicle } from "src/vehicle/entities/vehicle.entity";
+import { User } from "../../user/entities/user.entity";
+import { Vehicle } from "../../vehicle/entities/vehicle.entity";
 import { JourneyStatus } from "../enums/journey-status.enum";
-import { Booking } from "src/booking/entities/booking.entity";
-import { Rating } from "src/rating/entities/rating.entity";
+import { Booking } from "../../booking/entities/booking.entity";
+import { Rating } from "../../rating/entities/rating.entity";
 
 @Entity()
 export class Journey {

@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { BookingStatus } from "../enums/booking-status.enum";
-import { User } from "src/user/entities/user.entity";
-import { Journey } from "src/journey/entities/journey.entity";
+import { User } from "../../user/entities/user.entity";
+import { Journey } from "../../journey/entities/journey.entity";
 
 @Entity()
 export class Booking {
