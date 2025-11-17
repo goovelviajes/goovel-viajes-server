@@ -1,7 +1,7 @@
-import { User } from "src/user/entities/user.entity";
+import { User } from "../../user/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { VehicleType } from "../enums/vehicle-type.enum";
-import { Journey } from "src/journey/entities/journey.entity";
+import { Journey } from "../../journey/entities/journey.entity";
 
 @Entity()
 export class Vehicle {

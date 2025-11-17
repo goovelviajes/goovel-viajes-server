@@ -1,7 +1,7 @@
-import { JourneyType } from "src/journey/enums/journey-type.enum";
+import { JourneyType } from "../../journey/enums/journey-type.enum";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { RequestType } from "../enums/request-type.enum";
-import { User } from "src/user/entities/user.entity";
+import { User } from "../../user/entities/user.entity";
 
 @Entity()
 export class JourneyRequest {
