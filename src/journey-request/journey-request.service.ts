@@ -48,4 +48,12 @@ export class JourneyRequestService {
             throw new InternalServerErrorException("Error finding repeated requests")
         }
     }
+
+    async findAll(id: string) {
+        try {
+            return await this.requestRepository.find({ where: { user: { id } } });
+        } catch (error) {
+            throw new InternalServerErrorException("Error getting all published requests")
+        }
+    }
 }
