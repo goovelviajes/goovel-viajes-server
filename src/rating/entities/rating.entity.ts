@@ -1,5 +1,5 @@
-import { Journey } from "src/journey/entities/journey.entity";
-import { User } from "src/user/entities/user.entity";
+import { Journey } from "../../journey/entities/journey.entity";
+import { User } from "../../user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

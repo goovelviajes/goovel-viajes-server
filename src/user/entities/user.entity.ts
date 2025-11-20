@@ -1,8 +1,8 @@
 
 // import { AuthProvider } from 'src/auth/enums/auth-provider.enum';
-import { Notification } from 'src/notification/entities/notification.entity';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Report } from 'src/report/entities/report.entity';
+import { Notification } from '../../notification/entities/notification.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { Report } from '../../report/entities/report.entity';
 import {
   Column,
   CreateDateColumn,
@@ -14,12 +14,12 @@ import {
   UpdateDateColumn
 } from 'typeorm';
 import { RolesEnum } from '../enums/roles.enum';
-import { Message } from 'src/message/entities/message.entity';
-import { Vehicle } from 'src/vehicle/entities/vehicle.entity';
-import { Journey } from 'src/journey/entities/journey.entity';
-import { Booking } from 'src/booking/entities/booking.entity';
-import { Rating } from 'src/rating/entities/rating.entity';
-import { JourneyRequest } from 'src/journey-request/entities/journey-request.entity';
+import { Message } from '../../message/entities/message.entity';
+import { Vehicle } from '../../vehicle/entities/vehicle.entity';
+import { Journey } from '../../journey/entities/journey.entity';
+import { Booking } from '../../booking/entities/booking.entity';
+import { Rating } from '../../rating/entities/rating.entity';
+import { JourneyRequest } from '../../journey-request/entities/journey-request.entity';
 
 @Entity()
 export class User {
