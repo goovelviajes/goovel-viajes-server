@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { JourneyRequestService } from './journey-request.service';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
@@ -31,5 +31,15 @@ export class JourneyRequestController {
   @Get()
   findAll(@ActiveUser() activeUser: ActiveUserInterface) {
     return this.journeyRequestService.findAll(activeUser.id)
+  }
+
+  @ApiOperation({ summary: 'Cancelar una solicitud de viaje' })
+  @ApiOkResponse({ description: 'Journey request cancelled successfully' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while cancelling journey request' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
+  @Patch(':id')
+  cancelJourneyRequest(@ActiveUser() activeUser: ActiveUserInterface, @Param('id') journeyRequestId: string) {
+    return this.journeyRequestService.cancelJourneyRequest(activeUser.id, journeyRequestId)
   }
 }
