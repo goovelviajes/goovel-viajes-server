@@ -37,7 +37,7 @@ export class JourneyController {
   getPendingJourneys() {
     return this.journeyService.getPendingJourneys()
   }
-  
+
   @ApiOperation({ summary: 'Cancelar un viaje publicado' })
   @ApiNoContentResponse()
   @ApiNotFoundResponse({ description: 'Journey not found' })
@@ -50,7 +50,7 @@ export class JourneyController {
   cancelJourney(@Param('id', ParseUUIDPipe) id: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
     return this.journeyService.cancelJourney(id, activeUserId);
   }
-  
+
   @ApiOperation({ summary: 'Obtener todos los viajes publicados por el usuario activo' })
   @ApiOkResponse({ type: [JourneyOkResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting own journeys' })
@@ -61,4 +61,15 @@ export class JourneyController {
     return this.journeyService.getOwnjourneys(id);
   }
 
+  @ApiOperation({ summary: 'Marcar un viaje como completado' })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: 'Journey not found' })
+  @ApiForbiddenResponse({ description: 'User must be journey owner' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while marking journey as completed' })
+  @UseGuards(TokenGuard)
+  @HttpCode(204)
+  @Patch(':id/completed')
+  markJourneyAsCompleted(@Param('id', ParseUUIDPipe) id: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
+    return this.journeyService.markJourneyAsCompleted(id, activeUserId);
+  }
 }

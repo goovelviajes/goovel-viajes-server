@@ -154,5 +154,43 @@ export class JourneyService {
       throw new InternalServerErrorException("Error getting active user published journeys")
     }
   }
+
+  async getById(id: string) {
+    try {
+      const journey = await this.journeyRepository.findOne({ where: { id } });
+
+      if (!journey) {
+        throw new NotFoundException("Journey not found")
+      }
+
+      return journey;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error getting journey by ID");
+    }
+  }
+
+  async markJourneyAsCompleted(id: string, activeUserId: string) {
+    try {
+      const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+
+      if (!journey) throw new NotFoundException("Journey not found");
+
+      if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be marked as completed");
+
+      if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
+
+      await this.journeyRepository.update(id, {
+        status: JourneyStatus.COMPLETED
+      });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Error marking journey as completed")
+    }
+  }
 }
 

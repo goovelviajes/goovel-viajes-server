@@ -10,5 +10,6 @@ import { VehicleModule } from 'src/vehicle/vehicle.module';
   imports: [TypeOrmModule.forFeature([Journey]), UserModule, VehicleModule],
   controllers: [JourneyController],
   providers: [JourneyService],
+  exports: [JourneyService]
 })
 export class JourneyModule { }

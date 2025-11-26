@@ -1,4 +1,5 @@
 export enum RequestType {
     PENDING = "pending",
-    MATCHED = "matched"
+    MATCHED = "matched",
+    CANCELLED = "cancelled"
 }
