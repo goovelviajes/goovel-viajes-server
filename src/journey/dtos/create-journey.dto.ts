@@ -2,9 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsPositive, IsString, IsUUID, ValidateIf, ValidateNested } from "class-validator";
 import { JourneyType } from "../enums/journey-type.enum";
-import { LocationDto } from "./location.dto";
 import { IsDifferentLocation } from "src/common/decorator/is-diferent-location.decorator";
 import { IsFutureDate } from "src/common/decorator/is-future-date.decorator";
+import { LocationDto } from "src/common/dtos/location.dto";
 
 export class CreateJourneyDto {
     @ApiProperty({ type: LocationDto })

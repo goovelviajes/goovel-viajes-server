@@ -8,7 +8,7 @@ export class Booking {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column({ nullable: true })
     seatCount: number;
 
     @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
@@ -19,9 +19,6 @@ export class Booking {
 
     @Column()
     isShipping: boolean;
-
-    @Column({ type: 'double', nullable: true })
-    weight: number;
 
     @ManyToOne(() => User, (user) => user.bookings, { onDelete: 'CASCADE' })
     user: User;
