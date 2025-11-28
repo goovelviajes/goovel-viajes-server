@@ -1,10 +1,11 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { JourneyType } from "../enums/journey-type.enum";
 import { User } from "../../user/entities/user.entity";
 import { Vehicle } from "../../vehicle/entities/vehicle.entity";
 import { JourneyStatus } from "../enums/journey-status.enum";
 import { Booking } from "../../booking/entities/booking.entity";
 import { Rating } from "../../rating/entities/rating.entity";
+import { Proposal } from "src/proposal/entities/proposal.entity";
 
 @Entity()
 export class Journey {
@@ -46,4 +47,11 @@ export class Journey {
 
     @OneToMany(() => Rating, (rating) => rating.journey)
     ratings: Rating[];
+
+    // 🔹 RELACIÓN 1:1 CON PROPUESTA (proposal)
+    // Este Journey nació de ESTA propuesta aceptada.
+    // @JoinColumn indica que la columna 'accepted_proposal_id' existirá en esta tabla 'journey'.
+    @OneToOne(() => Proposal, (proposal) => proposal.journey)
+    @JoinColumn({ name: 'accepted_proposal_id' })
+    acceptedProposal: Proposal;
 }
