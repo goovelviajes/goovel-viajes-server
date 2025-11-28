@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards, Get } from '@nestjs/common';
-import { JourneyService } from './journey.service';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
+import { CreateProposalDto } from '../proposal/dtos/create-proposal.dto';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { JourneyResponseDto } from './dtos/journey-response.dto';
 import { JourneyOkResponseDto } from './dtos/journey-ok-response.dto';
+import { JourneyResponseDto } from './dtos/journey-response.dto';
+import { JourneyService } from './journey.service';
 
 @Controller('journey')
 export class JourneyController {
@@ -72,4 +73,6 @@ export class JourneyController {
   markJourneyAsCompleted(@Param('id', ParseUUIDPipe) id: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
     return this.journeyService.markJourneyAsCompleted(id, activeUserId);
   }
+
+
 }
