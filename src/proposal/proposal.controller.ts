@@ -1,12 +1,13 @@
-import { Body, Controller, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ProposalService } from './proposal.service';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { UseGuards } from '@nestjs/common';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { Proposal } from './entities/proposal.entity';
+import { PendingProposalsResponseDto } from './dtos/pending-proposals-response.dto';
 
 @UseGuards(TokenGuard)
 @Controller('proposal')
@@ -51,5 +52,14 @@ export class ProposalController {
     @Param('id', ParseUUIDPipe) proposalId: string
   ) {
     return this.proposalService.rejectProposal(passengerId, proposalId);
+  }
+
+  @ApiOperation({ summary: 'Obtener propuestas pendientes' })
+  @ApiOkResponse({ description: 'Pending proposals list', type: [PendingProposalsResponseDto] })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
+  @ApiBearerAuth('access-token')
+  @Get('pending')
+  getPendingProposals(@ActiveUser() { id: userId }: ActiveUserInterface) {
+    return this.proposalService.getPendingProposals(userId);
   }
 }

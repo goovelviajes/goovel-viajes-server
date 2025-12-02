@@ -7,14 +7,19 @@ import { Journey } from 'src/journey/entities/journey.entity';
 import { JourneyStatus } from 'src/journey/enums/journey-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 import { Vehicle } from 'src/vehicle/entities/vehicle.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
 import { Proposal } from './entities/proposal.entity';
 import { ProposalStatus } from './enums/proposal-status.enum';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ProposalService {
-    constructor(private readonly dataSource: DataSource) { }
+    constructor(
+        private readonly dataSource: DataSource,
+        @InjectRepository(Proposal)
+        private readonly proposalRepository: Repository<Proposal>
+    ) { }
 
     /**
    * ACCIÓN CONDUCTOR: Crear una oferta para un viaje
@@ -172,5 +177,12 @@ export class ProposalService {
 
         proposal.status = ProposalStatus.REJECTED;
         return await this.dataSource.getRepository(Proposal).save(proposal);
+    }
+
+    async getPendingProposals(userId: string) {
+        return await this.proposalRepository.find({
+            where: { journeyRequest: { user: { id: userId } }, status: ProposalStatus.SENT },
+            relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user']
+        });
     }
 }
