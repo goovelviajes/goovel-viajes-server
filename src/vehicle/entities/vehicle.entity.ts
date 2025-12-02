@@ -2,6 +2,7 @@ import { User } from "../../user/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { VehicleType } from "../enums/vehicle-type.enum";
 import { Journey } from "../../journey/entities/journey.entity";
+import { Proposal } from "src/proposal/entities/proposal.entity";
 
 @Entity()
 export class Vehicle {
@@ -34,4 +35,7 @@ export class Vehicle {
 
     @OneToMany(() => Journey, (journey) => journey.vehicle)
     journeys: Journey[];
+
+    @OneToMany(() => Proposal, (proposal) => proposal.vehicle)
+    proposals: Proposal[];
 }
