@@ -8,19 +8,12 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Or, Repository } from 'typeorm';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { VehicleService } from 'src/vehicle/vehicle.service';
+import { DataSource, Repository } from 'typeorm';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
-import { DataSource } from 'typeorm';
-import { CreateProposalDto } from '../proposal/dtos/create-proposal.dto';
-import { JourneyRequest } from 'src/journey-request/entities/journey-request.entity';
-import { RequestType } from 'src/journey-request/enums/request-type.enum';
-import { Vehicle } from 'src/vehicle/entities/vehicle.entity';
-import { Proposal } from 'src/proposal/entities/proposal.entity';
-import { ProposalStatus } from 'src/proposal/enums/proposal-status.enum';
 
 @Injectable()
 export class JourneyService {
