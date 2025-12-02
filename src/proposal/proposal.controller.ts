@@ -1,7 +1,7 @@
 import { Body, Controller, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ProposalService } from './proposal.service';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { UseGuards } from '@nestjs/common';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
@@ -36,5 +36,20 @@ export class ProposalController {
     @Param('id', ParseUUIDPipe) proposalId: string
   ) {
     return this.proposalService.acceptProposal(passengerId, proposalId);
+  }
+
+  @ApiOperation({ summary: 'Rechazar una propuesta' })
+  @ApiCreatedResponse({ description: 'Proposal successfully rejected', type: Proposal })
+  @ApiNotFoundResponse({ description: 'Proposal not found' })
+  @ApiForbiddenResponse({ description: 'User must be journey owner' })
+  @ApiConflictResponse({ description: 'Proposal must be in SENT status' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while rejecting proposal' })
+  @ApiBearerAuth('access-token')
+  @Patch(':id/reject')
+  async rejectProposal(
+    @ActiveUser() { id: passengerId }: ActiveUserInterface,
+    @Param('id', ParseUUIDPipe) proposalId: string
+  ) {
+    return this.proposalService.rejectProposal(passengerId, proposalId);
   }
 }

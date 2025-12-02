@@ -149,4 +149,28 @@ export class ProposalService {
             return { message: 'Journey confirmed successfully', journeyId: savedJourney.id };
         });
     }
+
+    /**
+   * ACCIÓN PASAJERO: Rechazar una oferta
+   */
+    async rejectProposal(passengerId: string, proposalId: string) {
+        // No necesitamos una transacción pesada aquí, es una actualización simple
+        const proposal = await this.dataSource.getRepository(Proposal).findOne({
+            where: { id: proposalId },
+            relations: ['journeyRequest', 'journeyRequest.user']
+        });
+
+        if (!proposal) throw new NotFoundException('Proposal not found');
+
+        if (proposal.journeyRequest.user.id !== passengerId) {
+            throw new ForbiddenException('You do not have permission to reject this proposal.');
+        }
+
+        if (proposal.status !== ProposalStatus.SENT) {
+            throw new ConflictException('Only pending proposals can be rejected.');
+        }
+
+        proposal.status = ProposalStatus.REJECTED;
+        return await this.dataSource.getRepository(Proposal).save(proposal);
+    }
 }
