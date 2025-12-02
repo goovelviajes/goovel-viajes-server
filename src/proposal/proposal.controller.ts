@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ProposalService } from './proposal.service';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
@@ -22,5 +22,19 @@ export class ProposalController {
   @Post()
   async createProposal(@ActiveUser() { id: driverId }: ActiveUserInterface, @Body() dto: CreateProposalDto) {
     return this.proposalService.createProposal(driverId, dto);
+  }
+
+  @ApiOperation({ summary: 'Aceptar una propuesta' })
+  @ApiCreatedResponse({ description: 'Proposal successfully accepted', type: Proposal })
+  @ApiNotFoundResponse({ description: 'Proposal not found' })
+  @ApiForbiddenResponse({ description: 'User must be journey owner' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while accepting proposal' })
+  @ApiBearerAuth('access-token')
+  @Patch(':id/accept')
+  async acceptProposal(
+    @ActiveUser() { id: passengerId }: ActiveUserInterface,
+    @Param('id', ParseUUIDPipe) proposalId: string
+  ) {
+    return this.proposalService.acceptProposal(passengerId, proposalId);
   }
 }

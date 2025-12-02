@@ -6,7 +6,7 @@ import { normalizeDate } from 'src/common/utils/date.util';
 import { Repository } from 'typeorm';
 import { CreateRequestDto } from './dtos/create-request.dto';
 import { JourneyRequest } from './entities/journey-request.entity';
-import { RequestType } from './enums/request-type.enum';
+import { RequestStatus } from './enums/request-status.enum';
 
 @Injectable()
 export class JourneyRequestService {
@@ -66,7 +66,7 @@ export class JourneyRequestService {
             if (request.user.id !== activeUserId) throw new ForbiddenException("User must be request owner")
 
             await this.requestRepository.update(id, {
-                status: RequestType.CANCELLED
+                status: RequestStatus.CANCELLED
             })
         } catch (error) {
             if (error instanceof HttpException) {

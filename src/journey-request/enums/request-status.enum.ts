@@ -1,4 +1,4 @@
-export enum RequestType {
+export enum RequestStatus {
     PENDING = "pending",
     MATCHED = "matched",
     CANCELLED = "cancelled",
