@@ -56,6 +56,7 @@ DB_NAME=your-database-name
 DB_SYNCHRONIZE=false
 PORT=3000
 SECRET_KEY=supersecret
+FRONTEND_URL=http://localhost:5173
 ```
 
 <br>
