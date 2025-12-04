@@ -7,7 +7,7 @@ import { Journey } from 'src/journey/entities/journey.entity';
 import { JourneyStatus } from 'src/journey/enums/journey-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 import { Vehicle } from 'src/vehicle/entities/vehicle.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
 import { Proposal } from './entities/proposal.entity';
 import { ProposalStatus } from './enums/proposal-status.enum';
@@ -191,5 +191,21 @@ export class ProposalService {
             where: { journeyRequest: { user: { id: userId } }, status: In([ProposalStatus.REJECTED, ProposalStatus.CANCELLED]) },
             relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user']
         })
+    }
+
+    async getDriverProposals(driverId: string, status?: ProposalStatus | ProposalStatus[]) {
+        const where: FindOptionsWhere<Proposal> = {
+            driver: { id: driverId }
+        };
+
+        if (status) {
+            where.status = Array.isArray(status) ? In(status) : status;
+        }
+
+        return await this.proposalRepository.find({
+            where,
+            relations: ['journeyRequest', 'vehicle', 'journeyRequest.user'],
+            order: { createdAt: 'DESC' }
+        });
     }
 }

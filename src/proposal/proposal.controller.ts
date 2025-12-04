@@ -1,13 +1,14 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseArrayPipe, ParseEnumPipe, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ProposalService } from './proposal.service';
 import { CreateProposalDto } from './dtos/create-proposal.dto';
-import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, OmitType } from '@nestjs/swagger';
 import { UseGuards } from '@nestjs/common';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { Proposal } from './entities/proposal.entity';
 import { ProposalsOkResponseDto } from './dtos/proposals-ok-response.dto';
+import { ProposalStatus } from './enums/proposal-status.enum';
 
 @UseGuards(TokenGuard)
 @Controller('proposal')
@@ -70,5 +71,17 @@ export class ProposalController {
   @Get('rejected')
   getRejectedAndCancelledProposals(@ActiveUser() { id: userId }: ActiveUserInterface) {
     return this.proposalService.getRejectedAndCancelledProposals(userId);
+  }
+
+  @ApiOperation({ summary: 'Obtener propuestas hechas por el conductor' })
+  @ApiOkResponse({ description: 'Proposals list', type: [OmitType(ProposalsOkResponseDto, ['driver'])] })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
+  @ApiBearerAuth('access-token')
+  @Get('driver/made')
+  getDriverProposals(
+    @ActiveUser() { id: driverId }: ActiveUserInterface,
+    @Query('status') status?: ProposalStatus | ProposalStatus[]
+  ) {
+    return this.proposalService.getDriverProposals(driverId, status);
   }
 }
