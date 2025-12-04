@@ -1,12 +1,11 @@
-import { JourneyRequest } from "src/journey-request/entities/journey-request.entity";
-import { ProposalStatus } from "../enums/proposal-status.enum";
-import { Vehicle } from "src/vehicle/entities/vehicle.entity";
-import { User } from "src/user/entities/user.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { JourneyRequest } from "src/journey-request/entities/journey-request.entity";
+import { User } from "src/user/entities/user.entity";
+import { Vehicle } from "src/vehicle/entities/vehicle.entity";
 import { VehicleType } from "src/vehicle/enums/vehicle-type.enum";
-import { Roles } from "src/auth/decorators/roles.decorator";
+import { ProposalStatus } from "../enums/proposal-status.enum";
 
-export class PendingProposalsResponseDto {
+export class ProposalsOkResponseDto {
     @ApiProperty({
         example: "123e4567-e89b-12d3-a456-426614174000",
         description: "ID de la propuesta"

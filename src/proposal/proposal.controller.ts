@@ -7,7 +7,7 @@ import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { Proposal } from './entities/proposal.entity';
-import { PendingProposalsResponseDto } from './dtos/pending-proposals-response.dto';
+import { ProposalsOkResponseDto } from './dtos/proposals-ok-response.dto';
 
 @UseGuards(TokenGuard)
 @Controller('proposal')
@@ -55,11 +55,20 @@ export class ProposalController {
   }
 
   @ApiOperation({ summary: 'Obtener propuestas pendientes' })
-  @ApiOkResponse({ description: 'Pending proposals list', type: [PendingProposalsResponseDto] })
+  @ApiOkResponse({ description: 'Pending proposals list', type: [ProposalsOkResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
   @ApiBearerAuth('access-token')
   @Get('pending')
   getPendingProposals(@ActiveUser() { id: userId }: ActiveUserInterface) {
     return this.proposalService.getPendingProposals(userId);
+  }
+
+  @ApiOperation({ summary: 'Obtener propuestas rechazadas y canceladas' })
+  @ApiOkResponse({ description: 'Rejected and cancelled proposals list', type: [ProposalsOkResponseDto] })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
+  @ApiBearerAuth('access-token')
+  @Get('rejected')
+  getRejectedAndCancelledProposals(@ActiveUser() { id: userId }: ActiveUserInterface) {
+    return this.proposalService.getRejectedAndCancelledProposals(userId);
   }
 }
