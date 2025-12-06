@@ -50,7 +50,8 @@ export class JourneyService {
       // Validar que el vehículo no tenga otro viaje el mismo día y hora
       const isJourneyRepeated = !!await this.findRepeatedJourneys(
         createJourneyDto.departureTime,
-        vehicle.id
+        vehicle.id,
+        activeUser.id
       );
 
       if (isJourneyRepeated) {
@@ -79,7 +80,7 @@ export class JourneyService {
   /**
    * Busca viajes repetidos para un mismo vehículo en la misma fecha
    */
-  private async findRepeatedJourneys(departureTime: Date, vehicleId: string) {
+  private async findRepeatedJourneys(departureTime: Date, vehicleId: string, userId: string) {
     try {
       // Normalizar hora y eliminar segundos/milisegundos
       const startOfDay = new Date(departureTime);
@@ -91,6 +92,7 @@ export class JourneyService {
       return await this.journeyRepository
         .createQueryBuilder('journey')
         .where('journey.vehicle = :vehicleId', { vehicleId })
+        .andWhere('journey.user = :userId', { userId })
         .andWhere('journey.departure_time BETWEEN :start AND :end', { start: startOfDay, end: endOfDay })
         .getOne();
 

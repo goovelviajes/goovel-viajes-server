@@ -19,7 +19,7 @@ export class JourneyRequestService {
                 user
             })
 
-            const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime)
+            const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime, user.id)
 
             if (isRequestRepeated) {
                 throw new ConflictException("Request cannot be repeated")
@@ -34,7 +34,7 @@ export class JourneyRequestService {
         }
     }
 
-    private async findRepeatedRequests(origin: LocationDto, destination: LocationDto, requestedTime: Date) {
+    private async findRepeatedRequests(origin: LocationDto, destination: LocationDto, requestedTime: Date, userId: string) {
         try {
             requestedTime = normalizeDate(requestedTime);
 
@@ -43,6 +43,7 @@ export class JourneyRequestService {
                 .where("JSON_EXTRACT(journey_request.origin, '$.name') = :originName", { originName: origin.name })
                 .andWhere("JSON_EXTRACT(journey_request.destination, '$.name') = :destinationName", { destinationName: destination.name })
                 .andWhere("journey_request.requested_time = :requestedTime", { requestedTime })
+                .andWhere("journey_request.user = :userId", { userId })
                 .getOne();
         } catch (error) {
             throw new InternalServerErrorException("Error finding repeated requests")
