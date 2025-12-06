@@ -193,7 +193,5 @@ export class JourneyService {
       throw new InternalServerErrorException("Error marking journey as completed")
     }
   }
-
-
 }
 
