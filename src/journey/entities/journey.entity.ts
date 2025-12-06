@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { JourneyType } from "../enums/journey-type.enum";
 import { User } from "../../user/entities/user.entity";
 import { Vehicle } from "../../vehicle/entities/vehicle.entity";
