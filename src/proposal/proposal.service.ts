@@ -12,13 +12,15 @@ import { CreateProposalDto } from './dtos/create-proposal.dto';
 import { Proposal } from './entities/proposal.entity';
 import { ProposalStatus } from './enums/proposal-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JourneyService } from 'src/journey/journey.service';
 
 @Injectable()
 export class ProposalService {
     constructor(
         private readonly dataSource: DataSource,
         @InjectRepository(Proposal)
-        private readonly proposalRepository: Repository<Proposal>
+        private readonly proposalRepository: Repository<Proposal>,
+        private readonly journeyService: JourneyService
     ) { }
 
     /**
@@ -207,5 +209,21 @@ export class ProposalService {
             relations: ['journeyRequest', 'vehicle', 'journeyRequest.user'],
             order: { createdAt: 'DESC' }
         });
+    }
+
+    async cancelProposal(driverId: string, proposalId: string) {
+        const proposal = await this.proposalRepository.findOne({
+            where: { id: proposalId, driver: { id: driverId } },
+            relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user']
+        })
+
+        if (!proposal) throw new NotFoundException('Proposal not found');
+
+        if (proposal.status !== ProposalStatus.SENT) {
+            throw new ConflictException('Only pending proposals can be cancelled.');
+        }
+
+        proposal.status = ProposalStatus.CANCELLED;
+        return await this.proposalRepository.save(proposal);
     }
 }

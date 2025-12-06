@@ -84,4 +84,18 @@ export class ProposalController {
   ) {
     return this.proposalService.getDriverProposals(driverId, status);
   }
+
+  @ApiOperation({ summary: 'Cancelar una propuesta' })
+  @ApiOkResponse({ description: 'Proposal cancelled successfully', type: ProposalsOkResponseDto })
+  @ApiNotFoundResponse({ description: 'Proposal not found' })
+  @ApiConflictResponse({ description: 'Proposal must be in SENT status' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while cancelling proposal' })
+  @ApiBearerAuth('access-token')
+  @Patch(':id/cancel')
+  cancelProposal(
+    @ActiveUser() { id: driverId }: ActiveUserInterface,
+    @Param('id', ParseUUIDPipe) proposalId: string
+  ) {
+    return this.proposalService.cancelProposal(driverId, proposalId);
+  }
 }
