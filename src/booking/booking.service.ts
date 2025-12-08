@@ -15,6 +15,13 @@ export class BookingService {
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
         try {
+            // Validamos que no se repita la reserva
+            const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
+
+            if (bookingExists) {
+                throw new ConflictException("Booking can't be repeated")
+            }
+
             const journey = await this.journeyService.getById(createBookingDto.journeyId);
 
             // Si el viaje es de tipo PACKAGE y se intenta pasar el campo seatCount generamos un error
@@ -65,5 +72,11 @@ export class BookingService {
             }
             throw new InternalServerErrorException("Error verifying seats availability")
         }
+    }
+
+    private async verifyIfBookingExists(userId: string, journeyId: string) {
+        const booking = await this.bookingRepository.findOne({ where: { user: { id: userId }, journey: { id: journeyId } } });
+
+        return !!booking
     }
 }
