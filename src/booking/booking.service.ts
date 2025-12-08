@@ -1,12 +1,11 @@
 import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Booking } from './entities/booking.entity';
-import { Repository } from 'typeorm';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
-import { CreateBookingDto } from './dtos/create-booking.dto';
-import { JourneyService } from 'src/journey/journey.service';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
-import { JourneyStatus } from 'src/journey/enums/journey-status.enum';
+import { JourneyService } from 'src/journey/journey.service';
+import { Repository } from 'typeorm';
+import { CreateBookingDto } from './dtos/create-booking.dto';
+import { Booking } from './entities/booking.entity';
 import { BookingStatus } from './enums/booking-status.enum';
 
 @Injectable()
@@ -15,6 +14,13 @@ export class BookingService {
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
         try {
+            // Verificamos que no exista una reserva para el mismo usuario y viaje
+            const isTimeRangeUnavailable = await this.verifyTimeAvailability(activeUser.id, createBookingDto.journeyId);
+
+            if (isTimeRangeUnavailable) {
+                throw new ConflictException("Date time is equal to another booking")
+            }
+
             // Validamos que no se repita la reserva
             const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
 
@@ -78,5 +84,13 @@ export class BookingService {
         const booking = await this.bookingRepository.findOne({ where: { user: { id: userId }, journey: { id: journeyId } } });
 
         return !!booking
+    }
+
+    private async verifyTimeAvailability(userId: string, journeyId: string,) {
+        const journey = await this.journeyService.getById(journeyId);
+
+        const isTimeRangeUnavailable = !!await this.bookingRepository.findOne({ where: { user: { id: userId }, journey: { departureTime: journey.departureTime } } });
+
+        return isTimeRangeUnavailable;
     }
 }
