@@ -14,18 +14,18 @@ export class BookingService {
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
         try {
-            // Verificamos que no exista una reserva para el mismo usuario y viaje
-            const isTimeRangeUnavailable = await this.verifyTimeAvailability(activeUser.id, createBookingDto.journeyId);
-
-            if (isTimeRangeUnavailable) {
-                throw new ConflictException("Date time is equal to another booking")
-            }
-
             // Validamos que no se repita la reserva
             const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
 
             if (bookingExists) {
                 throw new ConflictException("Booking can't be repeated")
+            }
+
+            // Verificamos que no exista una reserva para el mismo usuario y viaje
+            const isTimeRangeUnavailable = await this.verifyTimeAvailability(activeUser.id, createBookingDto.journeyId);
+
+            if (isTimeRangeUnavailable) {
+                throw new ConflictException("Date time is equal to another booking")
             }
 
             const journey = await this.journeyService.getById(createBookingDto.journeyId);
