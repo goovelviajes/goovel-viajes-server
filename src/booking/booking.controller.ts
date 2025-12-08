@@ -34,7 +34,8 @@ export class BookingController {
   @ApiConflictResponse({
     description:
       'No seats available: la suma de los asientos ya reservados más seatCount excede los asientos disponibles del viaje.' +
-      'Booking already exists: la reserva ya existe para el usuario y el viaje.',
+      'Booking already exists: la reserva ya existe para el usuario y el viaje.' +
+      'Time range is unavailable: la fecha y hora del viaje ya se encuentra reservada.'
   })
   @ApiNotFoundResponse({
     description:
