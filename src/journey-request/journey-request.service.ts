@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LocationDto } from 'src/common/dtos/location.dto';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { CreateRequestDto } from './dtos/create-request.dto';
 import { JourneyRequest } from './entities/journey-request.entity';
 import { RequestStatus } from './enums/request-status.enum';
+import { JourneyType } from 'src/journey/enums/journey-type.enum';
 
 @Injectable()
 export class JourneyRequestService {
@@ -14,6 +15,8 @@ export class JourneyRequestService {
 
     async createRequest(user: ActiveUserInterface, requestDto: CreateRequestDto) {
         try {
+            this.validateFieldsByType(requestDto)
+
             const newRequest = this.requestRepository.create({
                 ...requestDto,
                 user
@@ -31,6 +34,23 @@ export class JourneyRequestService {
                 throw error;
             }
             throw new InternalServerErrorException("Error creating request")
+        }
+    }
+
+    // Valida los campos especificos segun el tipo de viaje (CARPOOL o PACKAGE)
+    private validateFieldsByType(requestDto: CreateRequestDto) {
+        if (requestDto.type === JourneyType.PACKAGE) {
+            if (requestDto.requestedSeats) {
+                throw new BadRequestException("requestedSeats field is not required for package journeys")
+            }
+        }
+
+        if (requestDto.type === JourneyType.CARPOOL) {
+            if (requestDto.packageWeight) throw new BadRequestException("packageWeight field is not required for carpool journeys")
+            if (requestDto.packageLength) throw new BadRequestException("packageLength field is not required for carpool journeys")
+            if (requestDto.packageWidth) throw new BadRequestException("packageWidth field is not required for carpool journeys")
+            if (requestDto.packageHeight) throw new BadRequestException("packageHeight field is not required for carpool journeys")
+            if (requestDto.packageDescription) throw new BadRequestException("packageDescription field is not required for carpool journeys")
         }
     }
 
