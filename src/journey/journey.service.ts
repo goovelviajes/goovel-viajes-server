@@ -160,7 +160,7 @@ export class JourneyService {
 
   async getById(id: string) {
     try {
-      const journey = await this.journeyRepository.findOne({ where: { id } });
+      const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'vehicle'] });
 
       if (!journey) {
         throw new NotFoundException("Journey not found")
