@@ -93,4 +93,10 @@ export class BookingService {
 
         return isTimeRangeUnavailable;
     }
+
+    async userHasBookedJourney(userId: string, journeyId: string) {
+        const booking = await this.bookingRepository.findOne({ where: { user: { id: userId }, journey: { id: journeyId } } });
+
+        return !!booking
+    }
 }

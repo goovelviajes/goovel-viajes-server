@@ -10,5 +10,6 @@ import { JourneyModule } from 'src/journey/journey.module';
   imports: [TypeOrmModule.forFeature([Booking]), UserModule, JourneyModule],
   controllers: [BookingController],
   providers: [BookingService],
+  exports: [BookingService]
 })
-export class BookingModule {}
+export class BookingModule { }
