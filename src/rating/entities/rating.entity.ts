@@ -10,7 +10,7 @@ export class Rating {
     @Column()
     rating: Number;
 
-    @Column()
+    @Column({ nullable: true })
     comment: string;
 
     @CreateDateColumn({ name: 'created_at' })
