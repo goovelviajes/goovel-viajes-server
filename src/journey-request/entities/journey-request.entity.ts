@@ -1,7 +1,8 @@
+import { Proposal } from "src/proposal/entities/proposal.entity";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { JourneyType } from "../../journey/enums/journey-type.enum";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { RequestType } from "../enums/request-type.enum";
 import { User } from "../../user/entities/user.entity";
+import { RequestStatus } from "../enums/request-status.enum";
 
 @Entity()
 export class JourneyRequest {
@@ -34,10 +35,10 @@ export class JourneyRequest {
 
     @Column({
         type: 'enum',
-        enum: RequestType,
-        default: RequestType.PENDING,
+        enum: RequestStatus,
+        default: RequestStatus.PENDING,
     })
-    status: RequestType;
+    status: RequestStatus;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
@@ -59,4 +60,7 @@ export class JourneyRequest {
 
     @ManyToOne(() => User, (user) => user.journeyRequests, { onDelete: 'CASCADE' })
     user: User;
+
+    @OneToMany(() => Proposal, (proposal) => proposal.journeyRequest)
+    proposals: Proposal[];
 }

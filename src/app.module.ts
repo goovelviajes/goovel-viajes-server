@@ -14,6 +14,9 @@ import { RatingModule } from './rating/rating.module';
 import { JourneyModule } from './journey/journey.module';
 import { BookingModule } from './booking/booking.module';
 import { JourneyRequestModule } from './journey-request/journey-request.module';
+import { ProposalModule } from './proposal/proposal.module';
+
+const isProductionEnviroment = process.env.NODE_ENV === 'production';
 
 @Module({
   imports: [
@@ -31,7 +34,7 @@ import { JourneyRequestModule } from './journey-request/journey-request.module';
       password: process.env.DB_PASSWORD,
       database: 'goovel',
       entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
-      synchronize: true, //Cambiar a false en produccion
+      synchronize: !isProductionEnviroment,
       // dropSchema: true
     }),
     UserModule,
@@ -45,6 +48,7 @@ import { JourneyRequestModule } from './journey-request/journey-request.module';
     JourneyModule,
     BookingModule,
     JourneyRequestModule,
+    ProposalModule,
   ],
   controllers: [],
   providers: [],

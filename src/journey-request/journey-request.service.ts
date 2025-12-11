@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LocationDto } from 'src/common/dtos/location.dto';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
@@ -6,7 +6,8 @@ import { normalizeDate } from 'src/common/utils/date.util';
 import { Repository } from 'typeorm';
 import { CreateRequestDto } from './dtos/create-request.dto';
 import { JourneyRequest } from './entities/journey-request.entity';
-import { RequestType } from './enums/request-type.enum';
+import { RequestStatus } from './enums/request-status.enum';
+import { JourneyType } from 'src/journey/enums/journey-type.enum';
 
 @Injectable()
 export class JourneyRequestService {
@@ -14,12 +15,14 @@ export class JourneyRequestService {
 
     async createRequest(user: ActiveUserInterface, requestDto: CreateRequestDto) {
         try {
+            this.validateFieldsByType(requestDto)
+
             const newRequest = this.requestRepository.create({
                 ...requestDto,
                 user
             })
 
-            const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime)
+            const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime, user.id)
 
             if (isRequestRepeated) {
                 throw new ConflictException("Request cannot be repeated")
@@ -34,7 +37,24 @@ export class JourneyRequestService {
         }
     }
 
-    private async findRepeatedRequests(origin: LocationDto, destination: LocationDto, requestedTime: Date) {
+    // Valida los campos especificos segun el tipo de viaje (CARPOOL o PACKAGE)
+    private validateFieldsByType(requestDto: CreateRequestDto) {
+        if (requestDto.type === JourneyType.PACKAGE) {
+            if (requestDto.requestedSeats) {
+                throw new BadRequestException("requestedSeats field is not required for package journeys")
+            }
+        }
+
+        if (requestDto.type === JourneyType.CARPOOL) {
+            if (requestDto.packageWeight) throw new BadRequestException("packageWeight field is not required for carpool journeys")
+            if (requestDto.packageLength) throw new BadRequestException("packageLength field is not required for carpool journeys")
+            if (requestDto.packageWidth) throw new BadRequestException("packageWidth field is not required for carpool journeys")
+            if (requestDto.packageHeight) throw new BadRequestException("packageHeight field is not required for carpool journeys")
+            if (requestDto.packageDescription) throw new BadRequestException("packageDescription field is not required for carpool journeys")
+        }
+    }
+
+    private async findRepeatedRequests(origin: LocationDto, destination: LocationDto, requestedTime: Date, userId: string) {
         try {
             requestedTime = normalizeDate(requestedTime);
 
@@ -43,6 +63,7 @@ export class JourneyRequestService {
                 .where("JSON_EXTRACT(journey_request.origin, '$.name') = :originName", { originName: origin.name })
                 .andWhere("JSON_EXTRACT(journey_request.destination, '$.name') = :destinationName", { destinationName: destination.name })
                 .andWhere("journey_request.requested_time = :requestedTime", { requestedTime })
+                .andWhere("journey_request.user = :userId", { userId })
                 .getOne();
         } catch (error) {
             throw new InternalServerErrorException("Error finding repeated requests")
@@ -66,7 +87,7 @@ export class JourneyRequestService {
             if (request.user.id !== activeUserId) throw new ForbiddenException("User must be request owner")
 
             await this.requestRepository.update(id, {
-                status: RequestType.CANCELLED
+                status: RequestStatus.CANCELLED
             })
         } catch (error) {
             if (error instanceof HttpException) {

@@ -20,6 +20,7 @@ import { Journey } from '../../journey/entities/journey.entity';
 import { Booking } from '../../booking/entities/booking.entity';
 import { Rating } from '../../rating/entities/rating.entity';
 import { JourneyRequest } from '../../journey-request/entities/journey-request.entity';
+import { Proposal } from 'src/proposal/entities/proposal.entity';
 
 @Entity()
 export class User {
@@ -85,6 +86,9 @@ export class User {
 
   @OneToMany(() => JourneyRequest, (journeyRequest) => journeyRequest.user)
   journeyRequests: JourneyRequest[];
+
+  @OneToMany(() => Proposal, (proposal) => proposal.driver)
+  proposals: Proposal[];
 
   // ---> Habilitar para Google:
   // @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
