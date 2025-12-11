@@ -16,6 +16,8 @@ import { BookingModule } from './booking/booking.module';
 import { JourneyRequestModule } from './journey-request/journey-request.module';
 import { ProposalModule } from './proposal/proposal.module';
 
+const isProductionEnviroment = process.env.NODE_ENV === 'production';
+
 @Module({
   imports: [
     // Para verificar en que enviroment se esta ejecutando la app.
@@ -32,7 +34,7 @@ import { ProposalModule } from './proposal/proposal.module';
       password: process.env.DB_PASSWORD,
       database: 'goovel',
       entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
-      synchronize: true, //Cambiar a false en produccion
+      synchronize: !isProductionEnviroment,
       // dropSchema: true
     }),
     UserModule,
