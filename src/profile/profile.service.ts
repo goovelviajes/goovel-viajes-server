@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
@@ -31,6 +31,12 @@ export class ProfileService {
     }
 
     async updateProfileData(userId: string, updateProfileDto: UpdateProfileDto, file?: Express.Multer.File) {
+        const profileDtoLength = Object.keys(updateProfileDto).length;
+
+        if (profileDtoLength === 0 && !file) {
+            throw new BadRequestException("No data to update");
+        }
+
         const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
 
         if (!profile) {
