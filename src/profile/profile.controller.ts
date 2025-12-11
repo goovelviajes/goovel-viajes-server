@@ -6,7 +6,7 @@ import { ActiveUserInterface } from 'src/common/interface/active-user.interface'
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 @UseGuards(TokenGuard)
 @Controller('profile')
@@ -20,6 +20,7 @@ export class ProfileController {
     type: UpdateProfileDto,
   })
   @ApiNotFoundResponse({ description: 'Perfil no encontrado' })
+  @ApiBadRequestResponse({ description: 'No hay datos para actualizar' })
   @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   @Patch()
