@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Patch, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
@@ -6,9 +6,9 @@ import { ActiveUserInterface } from 'src/common/interface/active-user.interface'
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ProfileOkResponseDto } from './dtos/profile-ok-response.dto';
 
-@UseGuards(TokenGuard)
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) { }
@@ -23,6 +23,7 @@ export class ProfileController {
   @ApiBadRequestResponse({ description: 'No hay datos para actualizar' })
   @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
+  @UseGuards(TokenGuard)
   @Patch()
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -40,5 +41,15 @@ export class ProfileController {
     @UploadedFile() file?: Express.Multer.File
   ) {
     return await this.profileService.updateProfileData(userId, updateProfileDto, file);
+  }
+
+  @ApiOperation({ summary: 'Obtener datos del perfil' })
+  @ApiOkResponse({ description: 'Perfil obtenido correctamente', type: ProfileOkResponseDto })
+  @ApiNotFoundResponse({ description: 'Perfil o usuario no encontrados' })
+  @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
+  @Get(':profileName')
+  getProfile(@Param('profileName') profileName: string) {
+    return this.profileService.getProfile(profileName);
   }
 }

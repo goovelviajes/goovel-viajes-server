@@ -147,10 +147,22 @@ export class UserService {
   async restoreDeletedUser(id: string) {
     try {
       const restoreUser = await this.userRepository.restore(id);
-
-      console.log(restoreUser)
     } catch (error) {
       throw new InternalServerErrorException("Error restoring deleted user")
     }
+  }
+
+  async getUserByProfileName(profileName: string) {
+    const user = await this.userRepository.createQueryBuilder('user')
+      .innerJoin('user.profile', 'profile')
+      .where('profile.profileName = :profileName', { profileName })
+      .select(['user.id', 'user.name', 'user.lastname', 'user.birthdate', 'user.createdAt'])
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 }

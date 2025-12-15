@@ -5,12 +5,14 @@ import { Profile } from './entities/profile.entity';
 import { generateRandomProfilename } from '../profile/lib/generate-username';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileUploadService } from 'src/upload/file-upload.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ProfileService {
     constructor(
         @InjectRepository(Profile) private readonly profileRepository: Repository<Profile>,
-        private readonly fileUploadService: FileUploadService
+        private readonly fileUploadService: FileUploadService,
+        private readonly userService: UserService
     ) { }
 
     async getUniqueProfileName(name: string) {
@@ -61,5 +63,17 @@ export class ProfileService {
 
         Object.assign(profile, updateProfileDto);
         return await this.profileRepository.save(profile);
+    }
+
+    async getProfile(profileName: string) {
+        const profile = await this.profileRepository.findOne({ where: { profileName }, select: ['id', 'profileName', 'image', 'address', 'city', 'country', 'province'] });
+        if (!profile) {
+            throw new NotFoundException("Profile not found");
+        }
+
+        const user = await this.userService.getUserByProfileName(profileName);
+        profile.user = user;
+
+        return profile;
     }
 }
