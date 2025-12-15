@@ -165,4 +165,18 @@ export class UserService {
 
     return user;
   }
+
+  async update(id: string, user: User) {
+    const userToBeUpdated = await this.userRepository.preload({
+      id,
+      ...user,
+    });
+
+    if (!userToBeUpdated) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.save(userToBeUpdated);
+
+  }
 }
