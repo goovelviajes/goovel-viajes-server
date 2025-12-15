@@ -12,6 +12,8 @@ import { ProfileService } from '../profile/profile.service';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { User } from 'src/user/entities/user.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -103,49 +105,35 @@ export class AuthService {
     }
   }
 
-  // async loginWithGoogle(idToken: string) {
-  //   try {
-  //     const ticket = await this.client.verifyIdToken({
-  //       idToken,
-  //       audience: process.env.GOOGLE_CLIENT_ID
-  //     })
+  async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
+    try {
+      const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
 
-  //     const payload = ticket.getPayload();
+      const user = await this.userService.getUserById(id);
 
-  //     const email = payload?.email;
-  //     const name = payload?.name;
-  //     const picture = payload?.picture;
-  //     const googleId = payload?.sub;
+      const isValidPassword = await bcrypt.compare(oldPassword, user.password);
 
+      if (!isValidPassword)
+        throw new UnauthorizedException('Invalid credentials');
 
-  //     if (!email) throw new UnauthorizedException('Invalid Google token');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-  //     let user = await this.userService.getUserByEmail(email)
+      if (newPassword !== confirmPassword)
+        throw new UnauthorizedException('Passwords do not match');
 
-  //     if (!user) {
-  //       user = await this.userService.create({
-  //         email,
-  //         name,
-  //         picture,
-  //         googleId,
-  //         provider: AuthProvider.GOOGLE,
-  //       });
-  //     }
+      user.password = hashedPassword;
 
-  //     const SECRET_KEY = process.env.SECRET_KEY;
+      await this.userService.update(user.id, user);
 
-  //     const token = this.jwtService.sign({ sub: user.id, email: user.email }, { secret: SECRET_KEY });
-
-  //     return {
-  //       token,
-  //       user,
-  //     };
-
-  //   } catch (error) {
-  //     if (error instanceof HttpException) {
-  //       throw error;
-  //     }
-  //     throw new InternalServerErrorException("Error login with Google")
-  //   }
-  // }
+      return {
+        message: 'Password changed successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error changing password');
+    }
+  }
 }

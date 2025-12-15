@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Validate } from 'class-validator';
+import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, Validate } from 'class-validator';
 import { IsAdult } from 'src/common/decorator/is-adult.decorator';
 import { IsValidBirthdate } from 'src/common/decorator/is-valid-birthdate.decorator';
 // import { AuthProvider } from '../enums/auth-provider.enum';
@@ -19,7 +19,10 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'pass1234', description: 'Nueva contraseña' })
+  @ApiProperty({ example: 'Pass1234', description: 'Nueva contraseña' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d|.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+    message: 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial'
+  })
   @IsNotEmpty()
   password: string;
 
