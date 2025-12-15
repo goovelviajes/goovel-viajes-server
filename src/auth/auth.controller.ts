@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TokenGuard } from './guard/token.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -43,12 +44,14 @@ export class AuthController {
     return user;
   }
 
-  // @ApiOperation({ summary: 'Obtener usuario activo (obtenido desde el token)' })
-  // @ApiUnauthorizedResponse({ description: 'Error login with Google' })
-  // @ApiInternalServerErrorResponse({ description: 'Error login with Google or getting user by email' })
-  // @ApiBearerAuth('access-token')
-  // @Post('google')
-  // loginWithGoogle(@Body() body: { idToken: string }) {
-  //   return this.authService.loginWithGoogle(body.idToken)
-  // }
+  @ApiOperation({ summary: 'Cambio de contraseña' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized request' })
+  @ApiCreatedResponse({ description: 'Password changed successfully' })
+  @ApiInternalServerErrorResponse({ description: 'Error changing password' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
+  @Post('change-password')
+  changePassword(@ActiveUser() { id }: ActiveUserInterface, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(id, dto);
+  }
 }
