@@ -67,7 +67,13 @@ export class AuthController {
     return this.authService.forgotPassword(dto);
   }
 
-  // resetPassword(@Body() dto: ResetPasswordDto) {
-  //   return this.authService.resetPassword(dto);
-  // }
+  @ApiOperation({ summary: 'Reestablecimiento de contraseña' })
+  @ApiCreatedResponse({ description: 'Password reset successfully' })
+  @ApiUnauthorizedResponse({ description: 'Invalid reset token or password do not match' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error resetting password' })
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
 }

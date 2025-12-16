@@ -3,6 +3,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +17,7 @@ import { User } from 'src/user/entities/user.entity';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -143,10 +145,7 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User not found');
 
-    const payload = {
-      sub: user.id,
-      email: user.email
-    }
+    const payload = { sub: user.id, email: user.email };
 
     const resetToken = await this.jwtService.signAsync(payload, {
       secret: process.env.SECRET_KEY, expiresIn: '15m'
@@ -157,5 +156,38 @@ export class AuthService {
     return {
       message: 'Reset password email sent successfully',
     };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const { token, newPassword, confirmPassword } = dto;
+
+    if (newPassword !== confirmPassword)
+      throw new UnauthorizedException('Passwords do not match');
+
+    const SECRET_KEY = process.env.SECRET_KEY;
+    if (!SECRET_KEY) throw new UnauthorizedException('Secret key not found');
+
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: SECRET_KEY,
+      });
+
+      const user = await this.userService.getUserById(payload.sub);
+      if (!user) throw new NotFoundException('User not found');
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      user.password = hashedPassword;
+      await this.userService.update(user.id, user);
+
+      return { message: 'Password reset successfully' };
+
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Token expired or invalid');
+    }
   }
 }
