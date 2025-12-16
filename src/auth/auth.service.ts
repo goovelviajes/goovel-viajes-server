@@ -14,15 +14,16 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { User } from 'src/user/entities/user.entity';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  // private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly profileService: ProfileService
+    private readonly profileService: ProfileService,
+    private readonly mailService: MailService
   ) { }
 
   async register(registerDto: RegisterDto) {
@@ -135,5 +136,26 @@ export class AuthService {
       }
       throw new InternalServerErrorException('Error changing password');
     }
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user: User = await this.userService.getUserByEmail(dto.email);
+
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const payload = {
+      sub: user.id,
+      email: user.email
+    }
+
+    const resetToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.SECRET_KEY, expiresIn: '15m'
+    });
+
+    await this.mailService.sendResetPasswordMail(user.email, resetToken);
+
+    return {
+      message: 'Reset password email sent successfully',
+    };
   }
 }

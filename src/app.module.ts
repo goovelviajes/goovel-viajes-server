@@ -15,6 +15,8 @@ import { JourneyModule } from './journey/journey.module';
 import { BookingModule } from './booking/booking.module';
 import { JourneyRequestModule } from './journey-request/journey-request.module';
 import { ProposalModule } from './proposal/proposal.module';
+import { MailService } from './mail/mail.service';
+import { MailModule } from './mail/mail.module';
 
 const isProductionEnviroment = process.env.NODE_ENV === 'production';
 
@@ -49,8 +51,9 @@ const isProductionEnviroment = process.env.NODE_ENV === 'production';
     BookingModule,
     JourneyRequestModule,
     ProposalModule,
+    MailModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [MailService],
 })
 export class AppModule { }

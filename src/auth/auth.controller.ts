@@ -7,6 +7,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TokenGuard } from './guard/token.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -54,4 +56,18 @@ export class AuthController {
   changePassword(@ActiveUser() { id }: ActiveUserInterface, @Body() dto: ChangePasswordDto) {
     return this.authService.changePassword(id, dto);
   }
+
+  @ApiOperation({ summary: 'Olvidaste la contraseña?' })
+  @ApiCreatedResponse({ description: 'Reset password email sent successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid email' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error sending reset password email' })
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  // resetPassword(@Body() dto: ResetPasswordDto) {
+  //   return this.authService.resetPassword(dto);
+  // }
 }
