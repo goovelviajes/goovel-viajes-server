@@ -186,4 +186,14 @@ export class UserService {
     await this.userRepository.save(userToBeUpdated);
 
   }
+
+  async markUserAsConfirmed(user: User) {
+    if (user.isEmailConfirmed) {
+      throw new BadRequestException('User already confirmed');
+    }
+
+    user.isEmailConfirmed = true;
+
+    return this.userRepository.save(user);
+  }
 }
