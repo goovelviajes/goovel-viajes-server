@@ -46,7 +46,7 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        select: ['id', 'name', 'email', 'password'],
+        select: ['id', 'name', 'lastname', 'email', 'password', 'isEmailConfirmed', 'role'],
         withDeleted: true
       });
 
@@ -78,21 +78,28 @@ export class UserService {
   }
 
   async getUserByIdWithoutPassword(id: string) {
-    try {
-      const user = await this.userRepository.findOne({ where: { id }, withDeleted: true, select: ['id', 'name', 'lastname', 'email', 'birthdate', 'createdAt', 'updatedAt', 'deletedAt', 'role'] });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      withDeleted: true,
+      select: [
+        'id',
+        'name',
+        'lastname',
+        'email',
+        'birthdate',
+        'createdAt',
+        'updatedAt',
+        'deletedAt',
+        'role',
+        'isEmailConfirmed'
+      ]
+    });
 
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      return user;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error trying to get user by id');
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    return user;
   }
 
   /**
@@ -178,5 +185,15 @@ export class UserService {
 
     await this.userRepository.save(userToBeUpdated);
 
+  }
+
+  async markUserAsConfirmed(user: User) {
+    if (user.isEmailConfirmed) {
+      throw new BadRequestException('User already confirmed');
+    }
+
+    user.isEmailConfirmed = true;
+
+    return this.userRepository.save(user);
   }
 }
