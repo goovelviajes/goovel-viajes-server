@@ -54,6 +54,9 @@ export class User {
   @Column({ default: RolesEnum.MEMBER })
   role: RolesEnum;
 
+  @Column({ default: false })
+  isEmailConfirmed: boolean;
+
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
 
@@ -89,11 +92,4 @@ export class User {
 
   @OneToMany(() => Proposal, (proposal) => proposal.driver)
   proposals: Proposal[];
-
-  // ---> Habilitar para Google:
-  // @Column({ type: 'enum', enum: AuthProvider, default: AuthProvider.LOCAL })
-  // provider: AuthProvider;
-
-  // @Column({ nullable: true })
-  // googleId?: string;
 }
