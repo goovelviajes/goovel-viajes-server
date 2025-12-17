@@ -23,4 +23,23 @@ export class MailService {
             throw new InternalServerErrorException('No se pudo enviar el correo de recuperación');
         }
     }
+
+    async sendConfirmationMail(email: string, confirmationToken: string): Promise<void> {
+        const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${confirmationToken}`;
+
+        try {
+            await this.mailerService.sendMail({
+                to: email,
+                subject: 'Confirmación de correo | Goovel Viajes',
+                template: './confirm-email',
+                context: {
+                    url: confirmUrl,
+                    year: new Date().getFullYear(),
+                },
+            });
+        } catch (error) {
+            console.error('Error al enviar el correo de confirmación:', error);
+            throw new InternalServerErrorException('No se pudo enviar el correo de confirmación');
+        }
+    }
 }
