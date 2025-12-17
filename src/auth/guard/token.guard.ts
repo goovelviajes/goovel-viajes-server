@@ -26,7 +26,6 @@ export class TokenGuard implements CanActivate {
       throw new UnauthorizedException('You need a token to get access');
     }
 
-
     const secretKey = process.env.SECRET_KEY;
 
     if (!secretKey) {
@@ -38,9 +37,10 @@ export class TokenGuard implements CanActivate {
         secret: secretKey,
       });
 
-      const user = await this.userService.getUserByIdWithoutPassword(payload.sub);
-
-      request['user'] = user;
+      request['user'] = {
+        id: payload.sub,
+        role: payload.role
+      }
 
       return true;
     } catch (error) {
