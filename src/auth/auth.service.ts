@@ -18,6 +18,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 
 @Injectable()
 export class AuthService {
@@ -30,20 +31,16 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     try {
-      if (
-        // registerDto.provider === 'local' &&
-        !registerDto.password) {
+      if (!registerDto.password) {
         throw new BadRequestException('Password is neccesary for local registration');
       }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(registerDto.password, salt);
 
-      //conversion y validacion de la fecha de nacimiento
       const birthdate = new Date(registerDto.birthdate + 'T00:00:00');
-      //se transforma la fecha a un objeto date
 
-      if (isNaN(birthdate.getTime())) {//si el valor es invalido lanza una exception 
+      if (isNaN(birthdate.getTime())) {
         throw new BadRequestException('Invalid birthdate format');
       }
 
@@ -51,16 +48,16 @@ export class AuthService {
 
       profile.profileName = await this.profileService.getUniqueProfileName(registerDto.name);
 
-      //preparacion de un objeto usuario
       const userToCreate = {
         ...registerDto,
         birthdate,
         password: hashedPassword,
         profile
-      };//este objeto se enviara a userService reamplazando la 
-      // contraseña por la hasheada y asegurando que la fecha sea tipo Date
+      };
 
-      await this.userService.create(userToCreate);//creacion del usuario en la DB llamando al servicio
+      const createdUser = await this.userService.create(userToCreate);
+
+      await this.sendConfirmationMail({ email: createdUser.email });
 
       return {
         message: 'Registration Successful',
@@ -92,7 +89,7 @@ export class AuthService {
       const secretKey = process.env.SECRET_KEY;
       if (!secretKey) throw new UnauthorizedException('Secret key not found');
 
-      const payload = { sub: user.id, email: user.email };
+      const payload = { sub: user.id, role: user.role };
 
       const token = await this.jwtService.signAsync(payload, {
         secret: secretKey,
@@ -106,6 +103,14 @@ export class AuthService {
       }
       throw new InternalServerErrorException('Error user login');
     }
+  }
+
+  async getActiveUser(id: string) {
+    const user = await this.userService.getUserByIdWithoutPassword(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
   }
 
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
@@ -145,7 +150,7 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('User not found');
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, role: user.role };
 
     const resetToken = await this.jwtService.signAsync(payload, {
       secret: process.env.SECRET_KEY, expiresIn: '15m'
@@ -188,6 +193,64 @@ export class AuthService {
         throw error;
       }
       throw new UnauthorizedException('Token expired or invalid');
+    }
+  }
+
+  async sendConfirmationMail(dto: SendConfirmationMailDto) {
+    const user = await this.userService.getUserByEmail(dto.email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const SECRET_KEY: string = process.env.SECRET_KEY;
+    if (!SECRET_KEY) {
+      throw new Error('Secret key not found');
+    }
+
+    const confirmationToken: string = await this.jwtService.signAsync(
+      { sub: user.id, role: user.role },
+      { expiresIn: '1h', secret: SECRET_KEY },
+    );
+
+    await this.mailService.sendConfirmationMail(
+      user.email,
+      confirmationToken,
+    );
+
+    return {
+      message: 'Confirmation mail sent successfully',
+    }
+  }
+
+  async confirmEmail(token: string) {
+    try {
+      const SECRET_KEY = process.env.SECRET_KEY;
+
+      if (!SECRET_KEY) {
+        throw new Error('Secret key not found');
+      }
+
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: SECRET_KEY,
+      });
+      const user = await this.userService.getUserById(payload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      // Cambiamos el valor de isEmailConfirmed a true
+      await this.userService.markUserAsConfirmed(user);
+
+      return {
+        message: 'Email confirmed successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException('Token expired or invalid');
     }
   }
 }
