@@ -11,7 +11,7 @@ export class VehicleService {
 
     async create(userId: string, createVehicleDto: CreateVehicleDto) {
         try {
-            const isVehicleAlreadyExistent = await this.verifyIfVehicleExists(createVehicleDto.plate, userId);
+            const isVehicleAlreadyExistent = await this.verifyIfVehicleExists(createVehicleDto.plate);
 
             if (isVehicleAlreadyExistent.length > 0) {
                 throw new ConflictException('Vehicle plate already exist')
@@ -21,6 +21,7 @@ export class VehicleService {
 
             return await this.vehicleRepository.save(vehicle)
         } catch (error) {
+            console.error(error)
             if (error instanceof HttpException) {
                 throw error;
             }
@@ -29,9 +30,9 @@ export class VehicleService {
     }
 
     // Verifica si un vehiculo esta cargado con la misma patente, dentro del conjunto de vehiculos propio.
-    async verifyIfVehicleExists(plate: string, userId: string) {
+    async verifyIfVehicleExists(plate: string) {
         try {
-            return await this.vehicleRepository.find({ where: { plate, user: { id: userId } } })
+            return await this.vehicleRepository.find({ where: { plate } })
         } catch (error) {
             throw new InternalServerErrorException("Error verifying if vehicle exists")
         }

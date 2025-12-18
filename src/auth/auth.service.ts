@@ -3,6 +3,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,33 +13,34 @@ import { ProfileService } from '../profile/profile.service';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { User } from 'src/user/entities/user.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { MailService } from 'src/mail/mail.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 
 @Injectable()
 export class AuthService {
-  // private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly profileService: ProfileService
+    private readonly profileService: ProfileService,
+    private readonly mailService: MailService
   ) { }
 
   async register(registerDto: RegisterDto) {
     try {
-      if (
-        // registerDto.provider === 'local' &&
-        !registerDto.password) {
+      if (!registerDto.password) {
         throw new BadRequestException('Password is neccesary for local registration');
       }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(registerDto.password, salt);
 
-      //conversion y validacion de la fecha de nacimiento
       const birthdate = new Date(registerDto.birthdate + 'T00:00:00');
-      //se transforma la fecha a un objeto date
 
-      if (isNaN(birthdate.getTime())) {//si el valor es invalido lanza una exception 
+      if (isNaN(birthdate.getTime())) {
         throw new BadRequestException('Invalid birthdate format');
       }
 
@@ -46,16 +48,16 @@ export class AuthService {
 
       profile.profileName = await this.profileService.getUniqueProfileName(registerDto.name);
 
-      //preparacion de un objeto usuario
       const userToCreate = {
         ...registerDto,
         birthdate,
         password: hashedPassword,
         profile
-      };//este objeto se enviara a userService reamplazando la 
-      // contraseña por la hasheada y asegurando que la fecha sea tipo Date
+      };
 
-      await this.userService.create(userToCreate);//creacion del usuario en la DB llamando al servicio
+      const createdUser = await this.userService.create(userToCreate);
+
+      await this.sendConfirmationMail({ email: createdUser.email });
 
       return {
         message: 'Registration Successful',
@@ -87,7 +89,7 @@ export class AuthService {
       const secretKey = process.env.SECRET_KEY;
       if (!secretKey) throw new UnauthorizedException('Secret key not found');
 
-      const payload = { sub: user.id, email: user.email };
+      const payload = { sub: user.id, role: user.role };
 
       const token = await this.jwtService.signAsync(payload, {
         secret: secretKey,
@@ -103,49 +105,152 @@ export class AuthService {
     }
   }
 
-  // async loginWithGoogle(idToken: string) {
-  //   try {
-  //     const ticket = await this.client.verifyIdToken({
-  //       idToken,
-  //       audience: process.env.GOOGLE_CLIENT_ID
-  //     })
+  async getActiveUser(id: string) {
+    const user = await this.userService.getUserByIdWithoutPassword(id);
 
-  //     const payload = ticket.getPayload();
+    if (!user) throw new NotFoundException('User not found');
 
-  //     const email = payload?.email;
-  //     const name = payload?.name;
-  //     const picture = payload?.picture;
-  //     const googleId = payload?.sub;
+    return user;
+  }
 
+  async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
+    try {
+      const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
 
-  //     if (!email) throw new UnauthorizedException('Invalid Google token');
+      const user = await this.userService.getUserById(id);
 
-  //     let user = await this.userService.getUserByEmail(email)
+      const isValidPassword = await bcrypt.compare(oldPassword, user.password);
 
-  //     if (!user) {
-  //       user = await this.userService.create({
-  //         email,
-  //         name,
-  //         picture,
-  //         googleId,
-  //         provider: AuthProvider.GOOGLE,
-  //       });
-  //     }
+      if (!isValidPassword)
+        throw new UnauthorizedException('Invalid credentials');
 
-  //     const SECRET_KEY = process.env.SECRET_KEY;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-  //     const token = this.jwtService.sign({ sub: user.id, email: user.email }, { secret: SECRET_KEY });
+      if (newPassword !== confirmPassword)
+        throw new UnauthorizedException('Passwords do not match');
 
-  //     return {
-  //       token,
-  //       user,
-  //     };
+      user.password = hashedPassword;
 
-  //   } catch (error) {
-  //     if (error instanceof HttpException) {
-  //       throw error;
-  //     }
-  //     throw new InternalServerErrorException("Error login with Google")
-  //   }
-  // }
+      await this.userService.update(user.id, user);
+
+      return {
+        message: 'Password changed successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error changing password');
+    }
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user: User = await this.userService.getUserByEmail(dto.email);
+
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const payload = { sub: user.id, role: user.role };
+
+    const resetToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.SECRET_KEY, expiresIn: '15m'
+    });
+
+    await this.mailService.sendResetPasswordMail(user.email, resetToken);
+
+    return {
+      message: 'Reset password email sent successfully',
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const { token, newPassword, confirmPassword } = dto;
+
+    if (newPassword !== confirmPassword)
+      throw new UnauthorizedException('Passwords do not match');
+
+    const SECRET_KEY = process.env.SECRET_KEY;
+    if (!SECRET_KEY) throw new UnauthorizedException('Secret key not found');
+
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: SECRET_KEY,
+      });
+
+      const user = await this.userService.getUserById(payload.sub);
+      if (!user) throw new NotFoundException('User not found');
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      user.password = hashedPassword;
+      await this.userService.update(user.id, user);
+
+      return { message: 'Password reset successfully' };
+
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Token expired or invalid');
+    }
+  }
+
+  async sendConfirmationMail(dto: SendConfirmationMailDto) {
+    const user = await this.userService.getUserByEmail(dto.email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const SECRET_KEY: string = process.env.SECRET_KEY;
+    if (!SECRET_KEY) {
+      throw new Error('Secret key not found');
+    }
+
+    const confirmationToken: string = await this.jwtService.signAsync(
+      { sub: user.id, role: user.role },
+      { expiresIn: '1h', secret: SECRET_KEY },
+    );
+
+    await this.mailService.sendConfirmationMail(
+      user.email,
+      confirmationToken,
+    );
+
+    return {
+      message: 'Confirmation mail sent successfully',
+    }
+  }
+
+  async confirmEmail(token: string) {
+    try {
+      const SECRET_KEY = process.env.SECRET_KEY;
+
+      if (!SECRET_KEY) {
+        throw new Error('Secret key not found');
+      }
+
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: SECRET_KEY,
+      });
+      const user = await this.userService.getUserById(payload.sub);
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      // Cambiamos el valor de isEmailConfirmed a true
+      await this.userService.markUserAsConfirmed(user);
+
+      return {
+        message: 'Email confirmed successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException('Token expired or invalid');
+    }
+  }
 }

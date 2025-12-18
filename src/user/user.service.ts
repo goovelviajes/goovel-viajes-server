@@ -46,7 +46,7 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: { email },
-        select: ['id', 'name', 'email', 'password'],
+        select: ['id', 'name', 'lastname', 'email', 'password', 'isEmailConfirmed', 'role'],
         withDeleted: true
       });
 
@@ -78,21 +78,28 @@ export class UserService {
   }
 
   async getUserByIdWithoutPassword(id: string) {
-    try {
-      const user = await this.userRepository.findOne({ where: { id }, withDeleted: true, select: ['id', 'name', 'lastname', 'email', 'birthdate', 'createdAt', 'updatedAt', 'deletedAt', 'role'] });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      withDeleted: true,
+      select: [
+        'id',
+        'name',
+        'lastname',
+        'email',
+        'birthdate',
+        'createdAt',
+        'updatedAt',
+        'deletedAt',
+        'role',
+        'isEmailConfirmed'
+      ]
+    });
 
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      return user;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error trying to get user by id');
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    return user;
   }
 
   /**
@@ -147,10 +154,46 @@ export class UserService {
   async restoreDeletedUser(id: string) {
     try {
       const restoreUser = await this.userRepository.restore(id);
-
-      console.log(restoreUser)
     } catch (error) {
       throw new InternalServerErrorException("Error restoring deleted user")
     }
+  }
+
+  async getUserByProfileName(profileName: string) {
+    const user = await this.userRepository.createQueryBuilder('user')
+      .innerJoin('user.profile', 'profile')
+      .where('profile.profileName = :profileName', { profileName })
+      .select(['user.id', 'user.name', 'user.lastname', 'user.birthdate', 'user.createdAt'])
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async update(id: string, user: User) {
+    const userToBeUpdated = await this.userRepository.preload({
+      id,
+      ...user,
+    });
+
+    if (!userToBeUpdated) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.save(userToBeUpdated);
+
+  }
+
+  async markUserAsConfirmed(user: User) {
+    if (user.isEmailConfirmed) {
+      throw new BadRequestException('User already confirmed');
+    }
+
+    user.isEmailConfirmed = true;
+
+    return this.userRepository.save(user);
   }
 }
