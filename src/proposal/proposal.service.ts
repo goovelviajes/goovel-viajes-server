@@ -13,6 +13,7 @@ import { Proposal } from './entities/proposal.entity';
 import { ProposalStatus } from './enums/proposal-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JourneyService } from 'src/journey/journey.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ProposalService {
@@ -46,7 +47,8 @@ export class ProposalService {
             // 2. Buscar el vehiculo (propiedad y capacidad)
             const vehicle = await manager.findOne(Vehicle, {
                 where: { id: dto.vehicleId },
-                relations: { user: true }
+                relations: { user: true },
+                select: { user: { id: true } }
             })
 
             if (!vehicle) throw new NotFoundException("Vehicle not found");
@@ -60,11 +62,22 @@ export class ProposalService {
 
             if (existingProposal) throw new ConflictException("Driver already proposed for this request");
 
+            const driver = await manager.findOne(User, { where: { id: driverId }, select: ['id'] });
+
             // 4. Crear la propuesta
             const newProposal = manager.create(Proposal, {
                 journeyRequest: request,
-                driver: { id: driverId },
-                vehicle,
+                driver,
+                vehicle: {
+                    id: dto.vehicleId,
+                    brand: vehicle.brand,
+                    model: vehicle.model,
+                    capacity: vehicle.capacity,
+                    color: vehicle.color,
+                    plate: vehicle.plate,
+                    type: vehicle.type,
+                    year: vehicle.year,
+                },
                 priceOffered: request.proposedPrice,
                 status: ProposalStatus.SENT
             })
