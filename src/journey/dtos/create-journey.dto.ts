@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsPositive, IsString, IsUUID, ValidateIf, ValidateNested } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsPositive, IsString, IsUUID, Min, ValidateIf, ValidateNested } from "class-validator";
 import { JourneyType } from "../enums/journey-type.enum";
 import { IsDifferentLocation } from "src/common/decorator/is-diferent-location.decorator";
 import { IsFutureDate } from "src/common/decorator/is-future-date.decorator";
@@ -40,7 +40,7 @@ export class CreateJourneyDto {
     @ValidateIf(o => o.type === JourneyType.CARPOOL)
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
-    @IsPositive()
+    @Min(0)
     @IsNotEmpty({ message: 'pricePerSeat is required for carpool journeys' })
     pricePerSeat: number;
 
