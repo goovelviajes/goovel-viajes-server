@@ -18,23 +18,15 @@ export class UserService {
   ) { }
 
   async create(createUserDto: CreateUserDto) {
-    try {
-      const exists = await this.isUserAlreadyExists(createUserDto.email);
+    const exists = await this.isUserAlreadyExists(createUserDto.email);
 
-      if (exists) {
-        throw new BadRequestException('Email is already existent');
-      }
-
-      const newUser = this.userRepository.create(createUserDto);
-
-      return await this.userRepository.save(newUser);
-    } catch (error) {
-      console.log(error)
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error creating user');
+    if (exists) {
+      throw new BadRequestException('Email is already existent');
     }
+
+    const newUser = this.userRepository.create(createUserDto);
+
+    return await this.userRepository.save(newUser);
   }
 
   private async isUserAlreadyExists(email: string) {
