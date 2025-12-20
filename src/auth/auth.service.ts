@@ -19,15 +19,20 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
+  private readonly logger: Logger;
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly profileService: ProfileService,
     private readonly mailService: MailService
-  ) { }
+  ) {
+    this.logger = new Logger(AuthService.name);
+  }
 
   async register(registerDto: RegisterDto) {
     try {
@@ -57,7 +62,12 @@ export class AuthService {
 
       const createdUser = await this.userService.create(userToCreate);
 
-      await this.sendConfirmationMail({ email: createdUser.email });
+      this.sendConfirmationMail({ email: createdUser.email })
+        .catch(err => {
+          this.logger.error(`Critical error: Could not send registration email to ${createdUser.email}`);
+          this.logger.error(err.stack);
+        });
+
 
       return {
         message: 'Registration Successful',
