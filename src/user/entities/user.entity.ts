@@ -55,6 +55,9 @@ export class User {
   @Column({ default: false })
   isEmailConfirmed: boolean;
 
+  @Column({ nullable: true })
+  resetToken: string;
+
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
 

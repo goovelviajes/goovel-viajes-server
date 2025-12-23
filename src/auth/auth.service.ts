@@ -166,6 +166,9 @@ export class AuthService {
         expiresIn: '15m'
       });
 
+      user.resetToken = resetToken;
+      await this.userService.update(user.id, user);
+
       await this.mailService.sendResetPasswordMail(user.email, resetToken);
     }
 
@@ -189,12 +192,17 @@ export class AuthService {
       });
 
       const user = await this.userService.getUserById(payload.sub);
-      if (!user) throw new NotFoundException('User not found');
+
+      if (!user || user.resetToken !== token) {
+        throw new UnauthorizedException('Token already used or invalid');
+      }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
 
       user.password = hashedPassword;
+      user.resetToken = null;
+
       await this.userService.update(user.id, user);
 
       return { message: 'Password reset successfully' };
