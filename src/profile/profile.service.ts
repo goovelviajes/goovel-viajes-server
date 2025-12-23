@@ -36,7 +36,13 @@ export class ProfileService {
         const profileDtoLength = Object.keys(updateProfileDto).length;
 
         if (profileDtoLength === 0 && !file) throw new BadRequestException("No data to update");
-        if (updateProfileDto.profileName) await this.verifyProfileNameExists(updateProfileDto.profileName);
+
+        if (updateProfileDto.profileName) {
+            await this.verifyProfileNameExists(updateProfileDto.profileName);
+
+            const normalizedProfileName = updateProfileDto.profileName.toLowerCase().replace(/\s/g, "");
+            updateProfileDto.profileName = normalizedProfileName;
+        }
 
         const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
         if (!profile) throw new NotFoundException("Profile not found");
