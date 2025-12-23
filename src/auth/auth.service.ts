@@ -158,18 +158,19 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordDto) {
     const user: User = await this.userService.getUserByEmail(dto.email);
 
-    if (!user) throw new UnauthorizedException('User not found');
+    if (user) {
+      const payload = { sub: user.id, role: user.role };
 
-    const payload = { sub: user.id, role: user.role };
+      const resetToken = await this.jwtService.signAsync(payload, {
+        secret: process.env.SECRET_KEY,
+        expiresIn: '15m'
+      });
 
-    const resetToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.SECRET_KEY, expiresIn: '15m'
-    });
-
-    await this.mailService.sendResetPasswordMail(user.email, resetToken);
+      await this.mailService.sendResetPasswordMail(user.email, resetToken);
+    }
 
     return {
-      message: 'Reset password email sent successfully',
+      message: 'If the email is registered, you will receive a reset link shortly.',
     };
   }
 
