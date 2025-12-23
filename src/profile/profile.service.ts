@@ -33,10 +33,6 @@ export class ProfileService {
     }
 
     async updateProfileData(userId: string, updateProfileDto: UpdateProfileDto, file?: Express.Multer.File) {
-        const profileDtoLength = Object.keys(updateProfileDto).length;
-
-        if (profileDtoLength === 0 && !file) throw new BadRequestException("No data to update");
-
         if (updateProfileDto.profileName) {
             await this.verifyProfileNameExists(updateProfileDto.profileName);
 
