@@ -33,17 +33,15 @@ export class ProfileService {
     }
 
     async updateProfileData(userId: string, updateProfileDto: UpdateProfileDto, file?: Express.Multer.File) {
-        const profileDtoLength = Object.keys(updateProfileDto).length;
+        if (updateProfileDto.profileName) {
+            await this.verifyProfileNameExists(updateProfileDto.profileName);
 
-        if (profileDtoLength === 0 && !file) {
-            throw new BadRequestException("No data to update");
+            const normalizedProfileName = updateProfileDto.profileName.toLowerCase().replace(/\s/g, "");
+            updateProfileDto.profileName = normalizedProfileName;
         }
 
         const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
-
-        if (!profile) {
-            throw new NotFoundException("Profile not found");
-        }
+        if (!profile) throw new NotFoundException("Profile not found");
 
         if (file) {
             const customName = `profile_${userId}_${Date.now()}`;
@@ -60,9 +58,15 @@ export class ProfileService {
             profile.image = result.secure_url;
         }
 
-
         Object.assign(profile, updateProfileDto);
         return await this.profileRepository.save(profile);
+    }
+
+    private async verifyProfileNameExists(profileName: string) {
+        const profile = await this.profileRepository.findOne({ where: { profileName } });
+        if (profile) {
+            throw new BadRequestException("Profile name already exists");
+        }
     }
 
     async getProfile(profileName: string) {

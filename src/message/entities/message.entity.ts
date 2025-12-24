@@ -1,3 +1,4 @@
+import { Journey } from "src/journey/entities/journey.entity";
 import { User } from "../../user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -6,7 +7,7 @@ export class Message {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column('text')
     content: string;
 
     @Column({ name: 'is_read', default: false })
@@ -20,4 +21,7 @@ export class Message {
 
     @ManyToOne(() => User, (user) => user.receivedMessages, { onDelete: 'CASCADE' })
     receiver: User;
+
+    @ManyToOne(() => Journey, (journey) => journey.messages, { onDelete: 'CASCADE' })
+    journey: Journey;
 }
