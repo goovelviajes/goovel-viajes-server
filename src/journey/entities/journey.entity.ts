@@ -6,6 +6,7 @@ import { JourneyStatus } from "../enums/journey-status.enum";
 import { Booking } from "../../booking/entities/booking.entity";
 import { Rating } from "../../rating/entities/rating.entity";
 import { Proposal } from "src/proposal/entities/proposal.entity";
+import { Message } from "src/message/entities/message.entity";
 
 @Entity()
 export class Journey {
@@ -47,6 +48,9 @@ export class Journey {
 
     @OneToMany(() => Rating, (rating) => rating.journey)
     ratings: Rating[];
+
+    @OneToMany(() => Message, (message) => message.journey)
+    messages: Message[];
 
     // 🔹 RELACIÓN 1:1 CON PROPUESTA (proposal)
     // Este Journey nació de ESTA propuesta aceptada.
