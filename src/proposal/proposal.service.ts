@@ -133,7 +133,7 @@ export class ProposalService {
                 origin: request.origin,
                 destination: request.destination,
                 departureTime: request.requestedTime,
-                status: JourneyStatus.SCHEDULED,
+                status: JourneyStatus.PENDING,
                 vehicle: proposal.vehicle,
                 availableSeats: (proposal.vehicle.capacity - request.requestedSeats),
                 isShipping: request.type === JourneyType.PACKAGE,

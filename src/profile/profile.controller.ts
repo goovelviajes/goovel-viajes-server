@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, Param, Patch, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
@@ -6,7 +6,7 @@ import { ActiveUserInterface } from 'src/common/interface/active-user.interface'
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ProfileOkResponseDto } from './dtos/profile-ok-response.dto';
 
 @Controller('profile')
@@ -20,10 +20,11 @@ export class ProfileController {
     type: UpdateProfileDto,
   })
   @ApiNotFoundResponse({ description: 'Perfil no encontrado' })
-  @ApiBadRequestResponse({ description: 'No hay datos para actualizar' })
+  @ApiNoContentResponse()
   @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   @UseGuards(TokenGuard)
+  @HttpCode(204)
   @Patch()
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),

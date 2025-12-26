@@ -1,24 +1,23 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { ProfileModule } from './profile/profile.module';
-import { VehicleModule } from './vehicle/vehicle.module';
-import { NotificationModule } from './notification/notification.module';
-import { ReportModule } from './report/report.module';
-import { MessageModule } from './message/message.module';
-import { RatingModule } from './rating/rating.module';
-import { JourneyModule } from './journey/journey.module';
 import { BookingModule } from './booking/booking.module';
 import { JourneyRequestModule } from './journey-request/journey-request.module';
-import { ProposalModule } from './proposal/proposal.module';
-import { MailService } from './mail/mail.service';
+import { JourneyModule } from './journey/journey.module';
 import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
+import { MessageModule } from './message/message.module';
+import { NotificationModule } from './notification/notification.module';
+import { ProfileModule } from './profile/profile.module';
+import { ProposalModule } from './proposal/proposal.module';
+import { RatingModule } from './rating/rating.module';
+import { ReportModule } from './report/report.module';
+import { UserModule } from './user/user.module';
+import { VehicleModule } from './vehicle/vehicle.module';
 
-const isProductionEnviroment = process.env.NODE_ENV === 'production';
 
 @Module({
   imports: [
@@ -27,18 +26,33 @@ const isProductionEnviroment = process.env.NODE_ENV === 'production';
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
+
     // Conexion con la DB.
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: 'goovel',
-      entities: [join(__dirname, '/**/*.entity{.js,.ts}')],
-      synchronize: !isProductionEnviroment,
-      // dropSchema: true
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          type: 'mysql',
+          host: config.get<string>('DB_HOST'),
+          port: config.get<number>('DB_PORT'),
+          username: config.get<string>('DB_USERNAME'),
+          password: config.get<string>('DB_PASSWORD'),
+          database: config.get<string>('DB_NAME'),
+
+          ssl: config.get<string>('SSL_ENABLED') === 'true'
+            ? { rejectUnauthorized: false }
+            : false,
+
+          synchronize: config.get<string>('NODE_ENV') === 'development',
+          autoLoadEntities: true,
+          entities: [join(__dirname, '/**/*.entity{.ts,.js}')],
+          logging: config.get<string>('NODE_ENV') === 'development' ? 'all' : ['error'],
+        };
+      },
     }),
+
+    EventEmitterModule.forRoot(),
     UserModule,
     AuthModule,
     ProfileModule,

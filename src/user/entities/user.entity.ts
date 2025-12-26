@@ -1,8 +1,4 @@
-
-// import { AuthProvider } from 'src/auth/enums/auth-provider.enum';
-import { Notification } from '../../notification/entities/notification.entity';
-import { Profile } from '../../profile/entities/profile.entity';
-import { Report } from '../../report/entities/report.entity';
+import { Proposal } from 'src/proposal/entities/proposal.entity';
 import {
   Column,
   CreateDateColumn,
@@ -13,14 +9,16 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { RolesEnum } from '../enums/roles.enum';
-import { Message } from '../../message/entities/message.entity';
-import { Vehicle } from '../../vehicle/entities/vehicle.entity';
-import { Journey } from '../../journey/entities/journey.entity';
 import { Booking } from '../../booking/entities/booking.entity';
-import { Rating } from '../../rating/entities/rating.entity';
+import { RolesEnum } from '../../common/enums/roles.enum';
 import { JourneyRequest } from '../../journey-request/entities/journey-request.entity';
-import { Proposal } from 'src/proposal/entities/proposal.entity';
+import { Journey } from '../../journey/entities/journey.entity';
+import { Message } from '../../message/entities/message.entity';
+import { Notification } from '../../notification/entities/notification.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { Rating } from '../../rating/entities/rating.entity';
+import { Report } from '../../report/entities/report.entity';
+import { Vehicle } from '../../vehicle/entities/vehicle.entity';
 
 @Entity()
 export class User {
@@ -56,6 +54,9 @@ export class User {
 
   @Column({ default: false })
   isEmailConfirmed: boolean;
+
+  @Column({ nullable: true })
+  resetToken: string;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
