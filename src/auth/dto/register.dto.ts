@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, Validate } from 'class-validator';
-import { IsAdult } from 'src/common/decorator/is-adult.decorator';
-import { IsValidBirthdate } from 'src/common/decorator/is-valid-birthdate.decorator';
-// import { AuthProvider } from '../enums/auth-provider.enum';
+import { IsDateString, IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsAdult } from '../../common/decorator/is-adult.decorator';
+import { IsValidBirthdate } from '../../common/decorator/is-valid-birthdate.decorator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Adrian', description: 'Nombre del nuevo usuario' })
@@ -36,9 +35,4 @@ export class RegisterDto {
   @IsValidBirthdate()
   @IsAdult()
   birthdate: string;
-
-  // @ApiProperty({ example: 'local', enum: AuthProvider })
-  // @IsString()
-  // @IsOptional()
-  // provider: AuthProvider;
 }
