@@ -12,11 +12,6 @@ export class UpdateProfileDto {
     @IsOptional()
     phone?: string;
 
-    @ApiPropertyOptional({ example: 'https://example.com/image.jpg', description: 'Imagen del perfil' })
-    @IsString()
-    @IsOptional()
-    image?: string;
-
     @ApiPropertyOptional({ example: '123 Main St', description: 'Direccion del perfil' })
     @IsString()
     @IsOptional()
