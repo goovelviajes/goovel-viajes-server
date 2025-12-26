@@ -195,5 +195,12 @@ export class JourneyService {
       throw new InternalServerErrorException("Error marking journey as completed")
     }
   }
+
+  async getJourneyByIdWithBookings(journeyId: string) {
+    return await this.journeyRepository.findOne({
+      where: { id: journeyId },
+      relations: ['user', 'bookings', 'bookings.user']
+    });
+  }
 }
 
