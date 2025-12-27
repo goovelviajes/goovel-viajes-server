@@ -1,8 +1,9 @@
 import { Journey } from "src/journey/entities/journey.entity";
 import { User } from "../../user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
+@Index(['journey', 'sender', 'receiver'])
 export class Message {
     @PrimaryGeneratedColumn('uuid')
     id: string;
