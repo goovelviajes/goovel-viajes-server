@@ -1,55 +1,43 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
-class User {
-    @ApiProperty({ description: 'Id del usuario' })
+class ProfileResponseDto {
+    @ApiProperty({ example: 'uuid-perfil' })
     id: string;
-    @ApiProperty({ description: 'Nombre del usuario' })
+
+    @ApiProperty({ example: 'https://cdn.com/foto.jpg', nullable: true })
+    image: string;
+}
+
+class UserResponseDto {
+    @ApiProperty({ example: 'uuid-usuario' })
+    id: string;
+
+    @ApiProperty({ example: 'Juan' })
     name: string;
-    @ApiProperty({ description: 'Apellido del usuario' })
+
+    @ApiProperty({ example: 'Pérez' })
     lastname: string;
-    @ApiProperty({
-        type: Object,
-        example: {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            image: 'https://example.com/image.jpg'
-        }
-    })
-    profile: { id: string, image: string };
+
+    @ApiProperty({ type: ProfileResponseDto })
+    profile: ProfileResponseDto;
 }
 
 export class MessageOkResponseDto {
-    @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000', description: 'Id del mensaje' })
+    @ApiProperty({ example: 'uuid-mensaje' })
     id: string;
-    @ApiProperty({ example: 'Hello', description: 'Contenido del mensaje' })
+
+    @ApiProperty({ example: 'Hola, ¿cómo estás?' })
     content: string;
-    @ApiProperty({ example: false, description: 'Indica si el mensaje ha sido leído' })
-    isRead: boolean;
-    @ApiProperty({ example: '2025-12-24T15:18:05.123Z', description: 'Fecha de creación del mensaje' })
+
+    @ApiProperty({ example: '2023-10-27T10:00:00Z' })
     createdAt: Date;
-    @ApiProperty({
-        type: User,
-        example: {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            name: 'John',
-            lastname: 'Doe',
-            profile: {
-                id: '123e4567-e89b-12d3-a456-426614174000',
-                image: 'https://example.com/image.jpg'
-            }
-        }
-    })
-    sender: User;
-    @ApiProperty({
-        type: User,
-        example: {
-            id: '987e4567-e89b-12d3-a456-426614174321',
-            name: 'Mary',
-            lastname: 'Jane',
-            profile: {
-                id: '987e4567-e89b-12d3-a456-426614174321',
-                image: 'https://example.com/image.jpg'
-            }
-        }
-    })
-    receiver: User;
+
+    @ApiProperty({ example: false })
+    isRead: boolean;
+
+    @ApiProperty({ type: UserResponseDto })
+    sender: UserResponseDto;
+
+    @ApiProperty({ type: UserResponseDto })
+    receiver: UserResponseDto;
 }
