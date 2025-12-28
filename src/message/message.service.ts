@@ -77,7 +77,6 @@ export class MessageService {
         // Validamos que el usuario B sea participante del viaje
         await this.verifyUserIsParticipant(journey, currentUser, userB);
 
-
         const messages = await this.messageRepository.createQueryBuilder('message')
             .select([
                 'message.id',
