@@ -159,20 +159,13 @@ export class JourneyService {
   }
 
   async getById(id: string) {
-    try {
-      const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'vehicle'] });
+    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'user.profile', 'vehicle'] });
 
-      if (!journey) {
-        throw new NotFoundException("Journey not found")
-      }
-
-      return journey;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException("Error getting journey by ID");
+    if (!journey) {
+      throw new NotFoundException("Journey not found")
     }
+
+    return journey;
   }
 
   async markJourneyAsCompleted(id: string, activeUserId: string) {
