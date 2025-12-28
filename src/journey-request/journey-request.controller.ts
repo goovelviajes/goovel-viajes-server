@@ -23,14 +23,24 @@ export class JourneyRequestController {
     return this.journeyRequestService.createRequest(activeUser, requestDto)
   }
 
-  @ApiOperation({ summary: 'Obtener todas las solicitudes de viaje publicadas' })
+  @ApiOperation({ summary: 'Obtener todas las solicitudes de viaje publicadas por el usuario autenticado' })
   @ApiOkResponse({ description: 'List of published requests by active user', type: [FindRequestsResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting all journey requests' })
   @ApiBearerAuth('access-token')
   @UseGuards(TokenGuard)
-  @Get()
+  @Get('me')
   findAll(@ActiveUser() activeUser: ActiveUserInterface) {
-    return this.journeyRequestService.findAll(activeUser.id)
+    return this.journeyRequestService.findMyRequests(activeUser.id)
+  }
+
+  @ApiOperation({ summary: 'Obtener todas las solicitudes de viaje publicadas que tengan un estado pending o offered' })
+  @ApiOkResponse({ description: 'List of published requests with pending or offered status', type: [FindRequestsResponseDto] })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting all journey requests' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
+  @Get()
+  findAllPendingRequests() {
+    return this.journeyRequestService.findAllPendingRequests()
   }
 
   @ApiOperation({ summary: 'Cancelar una solicitud de viaje' })
