@@ -1,13 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Journey } from '../journey/entities/journey.entity';
-import { Brackets, Repository } from 'typeorm';
-import { Message } from './entities/message.entity';
-import { JourneyStatus } from '../journey/enums/journey-status.enum';
+import { filter, fromEvent, map, merge } from 'rxjs';
 import { UserService } from 'src/user/user.service';
+import { Brackets, Repository } from 'typeorm';
+import { Journey } from '../journey/entities/journey.entity';
+import { JourneyStatus } from '../journey/enums/journey-status.enum';
 import { JourneyService } from '../journey/journey.service';
-import { filter, fromEvent, map } from 'rxjs';
+import { Message } from './entities/message.entity';
 
 @Injectable()
 export class MessageService {
@@ -66,17 +66,17 @@ export class MessageService {
         // Si el usuario actual es el conductor, entonces el usuario B es el pasajero
         if (isDriver) {
             if (!userB) throw new BadRequestException('UserB field is required for journey drivers');
-
-            // Validamos que el usuario B sea participante del viaje
-            await this.verifyUserIsParticipant(journey, currentUser, userB);
+            // Validamos que el usuario B exista
+            await this.userService.getUserById(userB);
         } else {
             // Si el usuario actual es el pasajero, entonces el usuario B es el conductor
             if (userB) throw new BadRequestException('UserB field is not required for passengers');
             userB = journey.user.id;
         }
 
-        // Validamos que el usuario B exista
-        if (userB) await this.userService.getUserById(userB);
+        // Validamos que el usuario B sea participante del viaje
+        await this.verifyUserIsParticipant(journey, currentUser, userB);
+
 
         const messages = await this.messageRepository.createQueryBuilder('message')
             .select([
@@ -116,7 +116,7 @@ export class MessageService {
     }
 
     private async verifyUserIsParticipant(journey: Journey, senderId: string, receiverId: string) {
-        const passengersId = journey.bookings.map((b) => b.user.id);
+        const passengersId = journey.bookings.map((b) => b.user.id) || [];
 
         const isSenderParticipant = senderId === journey.user.id || passengersId.includes(senderId);
         const isReceiverParticipant = receiverId === journey.user.id || passengersId.includes(receiverId);
@@ -125,10 +125,49 @@ export class MessageService {
         if (!isSenderParticipant || !isReceiverParticipant) throw new ForbiddenException('User is not a participant of the journey');
     }
 
+    async deleteMessage(messageId: string, userId: string) {
+        const message = await this.messageRepository.findOne({
+            where: { id: messageId },
+            relations: ['sender', 'receiver', 'journey']
+        });
+
+        if (!message) throw new NotFoundException('Message not found');
+
+        // Validar propiedad: Solo el que lo envió puede borrarlo
+        if (message.sender.id !== userId) {
+            throw new ForbiddenException('Only sender can delete the message');
+        }
+
+        await this.messageRepository.softDelete(message.id);
+
+        // Emitir evento para que el Front del receptor actualice la UI
+        this.eventEmitter.emit('message.deleted', {
+            id: messageId,
+            journeyId: message.journey.id,
+            receiverId: message.receiver.id,
+            senderId: message.sender.id
+        });
+
+        return { success: true };
+    }
+
     async streamMessages(userId: string) {
-        return fromEvent(this.eventEmitter, 'message.created').pipe(
-            filter((msg: any) => msg.receiver.id === userId),
-            map((msg: any) => ({ data: msg }))
+        // Escuchamos ambos eventos por separado
+        const created$ = fromEvent(this.eventEmitter, 'message.created').pipe(
+            map(data => ({ data, type: 'message.created' }))
+        );
+
+        const deleted$ = fromEvent(this.eventEmitter, 'message.deleted').pipe(
+            map(data => ({ data, type: 'message.deleted' }))
+        );
+
+        // Combinamos ambos flujos
+        return merge(created$, deleted$).pipe(
+            filter(({ data }: any) => data.receiverId === userId || data.senderId === userId),
+            map(({ data, type }) => ({
+                data,
+                type, // Aquí es donde Postman leerá la etiqueta naranja que ves en tu captura
+            })),
         );
     }
 }
