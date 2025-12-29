@@ -1,21 +1,20 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // Asegúrate de tener esto
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { MailService } from './mail.service';
 
 @Module({
     imports: [
         MailerModule.forRootAsync({
-            imports: [ConfigModule], // Importante para acceder al .env
+            imports: [ConfigModule],
             useFactory: async (config: ConfigService) => ({
                 transport: {
-                    host: 'smtp.gmail.com',
-                    port: 587,
+                    host: config.get<string>('MAIL_HOST'),
+                    port: config.get<number>('MAIL_PORT'),
                     secure: false,
                     auth: {
-                        // Usamos el ConfigService para obtener las variables de forma segura
                         user: config.get<string>('USER_NAME_MAIL'),
                         pass: config.get<string>('USER_PASSWORD_MAIL'),
                     },

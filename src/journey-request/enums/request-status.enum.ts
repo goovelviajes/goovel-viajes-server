@@ -3,5 +3,5 @@ export enum RequestStatus {
     MATCHED = "matched",
     CANCELLED = "cancelled",
     CLOSED = "closed",
-    OFERED = "ofered"
+    OFFERED = "offered"
 }

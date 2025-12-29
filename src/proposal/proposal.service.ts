@@ -85,7 +85,7 @@ export class ProposalService {
             await manager.save(newProposal);
 
             // 5. Actualizar el estado de la solicitud
-            request.status = RequestStatus.OFERED;
+            request.status = RequestStatus.OFFERED;
             await manager.save(request);
 
             return newProposal;

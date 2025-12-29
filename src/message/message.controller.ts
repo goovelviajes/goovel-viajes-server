@@ -1,5 +1,5 @@
-import { Body, Controller, Get, ParseUUIDPipe, Post, Query, Sse, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Post, Query, Sse, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
@@ -9,6 +9,7 @@ import { SendMessageDto } from './dtos/send-message.dto';
 import { MessageService } from './message.service';
 
 @ApiTags('Message')
+@UseGuards(TokenGuard)
 @Controller('message')
 export class MessageController {
   constructor(private readonly messageService: MessageService) { }
@@ -20,26 +21,47 @@ export class MessageController {
   @ApiBadRequestResponse({ description: 'Sender and receiver cannot be the same, journey must be pending, receiver ID is required for journey drivers, receiver ID is not required for passengers' })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while sending message' })
   @ApiBearerAuth('access-token')
-  @UseGuards(TokenGuard)
   @Post('send')
   async send(@Body() { receiverId, journeyId, content }: SendMessageDto, @ActiveUser() { id: senderId }: ActiveUserInterface) {
     return this.messageService.sendMessage(senderId, journeyId, content, receiverId);
   }
 
-  @ApiOperation({ summary: 'Obtener el historial de chat con otro usuario' })
-  @ApiOkResponse({ description: 'Chat history', type: [MessageOkResponseDto] })
-  @ApiBadRequestResponse({ description: 'Sender and receiver cannot be the same, userB field is required for journey drivers, userB field is not required for passengers' })
-  @ApiNotFoundResponse({ description: 'Journey or user not found' })
-  @ApiForbiddenResponse({ description: 'User must be journey owner or passenger' })
-  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting chat history' })
+  @ApiOperation({
+    summary: 'Obtener el historial de chat con otro usuario',
+    description: 'Retorna los mensajes intercambiados entre el usuario actual y otro participante en el contexto de un viaje.'
+  })
+  @ApiOkResponse({
+    description: 'Historial de mensajes obtenido con éxito',
+    type: [MessageOkResponseDto]
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Cantidad de mensajes a traer (por defecto 20)' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Cantidad de mensajes a saltar para paginación' })
+  @ApiQuery({ name: 'userB', required: false, type: String, description: 'ID del otro usuario (obligatorio si el solicitante es el conductor)' })
+  @ApiBadRequestResponse({ description: 'Validaciones fallidas (mismo usuario, falta userB, etc.)' })
+  @ApiNotFoundResponse({ description: 'Viaje o usuario no encontrado' })
+  @ApiForbiddenResponse({ description: 'El usuario no pertenece a este viaje' })
   @ApiBearerAuth('access-token')
-  @UseGuards(TokenGuard)
   @Get('chat-history')
   async getChatHistory(
     @Query('journeyId', ParseUUIDPipe) journeyId: string,
     @ActiveUser() { id: currentUser }: ActiveUserInterface,
-    @Query('userB') userB: string) {
-    return this.messageService.getChatHistory(journeyId, currentUser, userB);
+    @Query('userB') userB: string,
+    @Query('limit', new DefaultValuePipe(20)) limit: number,
+    @Query('offset', new DefaultValuePipe(0)) offset: number) {
+    return this.messageService.getChatHistory(journeyId, currentUser, userB, limit, offset);
+  }
+
+  @ApiOperation({
+    summary: 'Eliminar un mensaje',
+    description: 'Elimina un mensaje específico del usuario autenticado.'
+  })
+  @ApiNotFoundResponse({ description: 'Mensaje no encontrado' })
+  @ApiForbiddenResponse({ description: 'El usuario no es el dueño del mensaje' })
+  @ApiOkResponse({ description: 'Mensaje eliminado con éxito' })
+  @ApiBearerAuth('access-token')
+  @Delete(':messageId')
+  deleteMessage(@ActiveUser() { id: userId }: ActiveUserInterface, @Param('messageId', ParseUUIDPipe) messageId: string) {
+    return this.messageService.deleteMessage(messageId, userId);
   }
 
   @ApiOperation({
@@ -96,7 +118,6 @@ export class MessageController {
   })
   @ApiBearerAuth('access-token')
   @Sse('stream')
-  @UseGuards(TokenGuard)
   streamMessages(@ActiveUser() { id: userId }: ActiveUserInterface) {
     return this.messageService.streamMessages(userId);
   }
