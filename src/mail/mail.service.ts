@@ -20,7 +20,7 @@ export class MailService {
             });
         } catch (error) {
             console.error('Error al enviar el correo de recuperación:', error);
-            throw new InternalServerErrorException('No se pudo enviar el correo de recuperación');
+            throw new InternalServerErrorException('Error while sending reset password email');
         }
     }
 
@@ -39,7 +39,7 @@ export class MailService {
             });
         } catch (error) {
             console.error('Error al enviar el correo de confirmación:', error);
-            throw new InternalServerErrorException('No se pudo enviar el correo de confirmación');
+            throw new InternalServerErrorException('Error while sending confirmation email');
         }
     }
 }

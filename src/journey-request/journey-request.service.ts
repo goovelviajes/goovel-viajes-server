@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LocationDto } from 'src/common/dtos/location.dto';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { normalizeDate } from 'src/common/utils/date.util';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateRequestDto } from './dtos/create-request.dto';
 import { JourneyRequest } from './entities/journey-request.entity';
 import { RequestStatus } from './enums/request-status.enum';
@@ -70,12 +70,12 @@ export class JourneyRequestService {
         }
     }
 
-    async findAll(id: string) {
-        try {
-            return await this.requestRepository.find({ where: { user: { id } } });
-        } catch (error) {
-            throw new InternalServerErrorException("Error getting all published requests")
-        }
+    async findAllPendingRequests() {
+        return await this.requestRepository.find({ where: { status: In([RequestStatus.PENDING, RequestStatus.OFFERED]) } });
+    }
+
+    async findMyRequests(id: string) {
+        return await this.requestRepository.find({ where: { user: { id } } });
     }
 
     async cancelJourneyRequest(activeUserId: string, id: string) {

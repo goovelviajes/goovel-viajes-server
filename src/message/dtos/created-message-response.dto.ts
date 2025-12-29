@@ -7,14 +7,26 @@ export class CreatedMessageResponseDto {
     @ApiProperty({ example: 'Hello', description: 'Contenido del mensaje' })
     content: string;
 
-    @ApiProperty({ example: '713c3f3b-f708-4751-ac91-72d86c714c2f', description: 'Id del remitente' })
-    sender: string;
+    @ApiProperty({
+        example: {
+            id: '713c3f3b-f708-4751-ac91-72d86c714c2f',
+        }, description: 'Id del remitente'
+    })
+    sender: { id: string };
 
-    @ApiProperty({ example: '847d784a-40b1-4ae2-8106-5ed6e97e55a0', description: 'Id del destinatario' })
-    receiver: string;
+    @ApiProperty({
+        example: {
+            id: '847d784a-40b1-4ae2-8106-5ed6e97e55a0',
+        }, description: 'Id del destinatario'
+    })
+    receiver: { id: string };
 
-    @ApiProperty({ example: '06f82bc5-658e-45c0-8f56-1a1870491c58', description: 'Id del viaje' })
-    journey: string;
+    @ApiProperty({
+        example: {
+            id: '06f82bc5-658e-45c0-8f56-1a1870491c58',
+        }, description: 'Id del viaje'
+    })
+    journey: { id: string };
 
     @ApiProperty({ example: false, description: 'Indica si el mensaje ha sido leído' })
     isRead: boolean;
