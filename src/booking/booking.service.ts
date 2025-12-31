@@ -13,71 +13,57 @@ export class BookingService {
     constructor(@InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>, private readonly journeyService: JourneyService) { }
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
-        try {
-            // Validamos que no se repita la reserva
-            const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
+        // Validamos que no se repita la reserva
+        const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
 
-            if (bookingExists) {
-                throw new ConflictException("Booking can't be repeated")
-            }
-
-            // Verificamos que no exista una reserva para el mismo usuario y viaje
-            const isTimeRangeUnavailable = await this.verifyTimeAvailability(activeUser.id, createBookingDto.journeyId);
-
-            if (isTimeRangeUnavailable) {
-                throw new ConflictException("Date time is equal to another booking")
-            }
-
-            const journey = await this.journeyService.getById(createBookingDto.journeyId);
-
-            // Si el viaje es de tipo PACKAGE y se intenta pasar el campo seatCount generamos un error
-            if (journey.type === JourneyType.PACKAGE && createBookingDto.seatCount)
-                throw new BadRequestException("Property seatCount shouldn't exist");
-
-            // Si el tipo de viaje es CARPOOL verificamos que efectivamente se este enviando el campo seatCount y tambien verificamos que haya asientos disponibles.
-            if (journey.type === JourneyType.CARPOOL) {
-                if (!createBookingDto.seatCount) {
-                    throw new BadRequestException("Field seatCount is missing")
-                }
-                const AreAvailableSeats = await this.verifySeatsAvailability(createBookingDto.journeyId, createBookingDto.seatCount);
-
-                if (!AreAvailableSeats) {
-                    throw new ConflictException("No seats available")
-                }
-            }
-
-            const booking = this.bookingRepository.create({
-                isShipping: journey.type === JourneyType.PACKAGE,
-                user: activeUser,
-                journey,
-                seatCount: createBookingDto.seatCount || null
-            });
-
-            return await this.bookingRepository.save(booking)
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new InternalServerErrorException("Error creating new booking")
+        if (bookingExists) {
+            throw new ConflictException("Booking can't be repeated")
         }
+
+        // Verificamos que no exista una reserva para el mismo usuario y viaje
+        const isTimeRangeUnavailable = await this.verifyTimeAvailability(activeUser.id, createBookingDto.journeyId);
+
+        if (isTimeRangeUnavailable) {
+            throw new ConflictException("Date time is equal to another booking")
+        }
+
+        const journey = await this.journeyService.getById(createBookingDto.journeyId);
+
+        // Si el viaje es de tipo PACKAGE y se intenta pasar el campo seatCount generamos un error
+        if (journey.type === JourneyType.PACKAGE && createBookingDto.seatCount)
+            throw new BadRequestException("Property seatCount shouldn't exist");
+
+        // Si el tipo de viaje es CARPOOL verificamos que efectivamente se este enviando el campo seatCount y tambien verificamos que haya asientos disponibles.
+        if (journey.type === JourneyType.CARPOOL) {
+            if (!createBookingDto.seatCount) {
+                throw new BadRequestException("Field seatCount is missing")
+            }
+            const AreAvailableSeats = await this.verifySeatsAvailability(createBookingDto.journeyId, createBookingDto.seatCount);
+
+            if (!AreAvailableSeats) {
+                throw new ConflictException("No seats available")
+            }
+        }
+
+        const booking = this.bookingRepository.create({
+            isShipping: journey.type === JourneyType.PACKAGE,
+            user: activeUser,
+            journey,
+            seatCount: createBookingDto.seatCount || null
+        });
+
+        return await this.bookingRepository.save(booking)
     }
 
     private async verifySeatsAvailability(journeyId: string, quantityToAdd: number) {
-        try {
-            const journey = await this.journeyService.getById(journeyId);
-            const bookings = await this.bookingRepository.find({ where: { journey: { id: journeyId }, status: BookingStatus.PENDING } });
+        const journey = await this.journeyService.getById(journeyId);
+        const bookings = await this.bookingRepository.find({ where: { journey: { id: journeyId }, status: BookingStatus.PENDING } });
 
-            const occupiedSeats = bookings.reduce((acc, booking) => {
-                return acc + booking.seatCount;
-            }, 0);
+        const occupiedSeats = bookings.reduce((acc, booking) => {
+            return acc + booking.seatCount;
+        }, 0);
 
-            return (occupiedSeats + quantityToAdd) <= journey.availableSeats
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new InternalServerErrorException("Error verifying seats availability")
-        }
+        return (occupiedSeats + quantityToAdd) <= journey.availableSeats
     }
 
     private async verifyIfBookingExists(userId: string, journeyId: string) {
