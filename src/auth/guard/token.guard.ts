@@ -8,13 +8,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class TokenGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userService: UserService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
