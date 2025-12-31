@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsDateString, IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { IsAdult } from '../../common/decorator/is-adult.decorator';
 import { IsValidBirthdate } from '../../common/decorator/is-valid-birthdate.decorator';
 
@@ -23,6 +23,9 @@ export class RegisterDto {
     message: 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial'
   })
   @IsNotEmpty()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(12)
   password: string;
 
   @ApiProperty({
