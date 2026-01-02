@@ -8,15 +8,21 @@ import { Repository } from 'typeorm';
 import { CreateBookingDto } from './dtos/create-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { BookingStatus } from './enums/booking-status.enum';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class BookingService {
     constructor(
         @InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>,
         @Inject(forwardRef(() => JourneyService))
-        private readonly journeyService: JourneyService) { }
+        private readonly journeyService: JourneyService,
+        private readonly userService: UserService
+    ) { }
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
+        const user = await this.userService.getUserById(activeUser.id)
+        console.log(user)
+
         // Validamos que no se repita la reserva
         const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
 
@@ -32,6 +38,15 @@ export class BookingService {
         }
 
         const journey = await this.journeyService.getById(createBookingDto.journeyId);
+
+        switch (journey.status) {
+            case JourneyStatus.CANCELLED:
+                throw new BadRequestException("Journey is cancelled");
+            case JourneyStatus.COMPLETED:
+                throw new BadRequestException("Journey is completed");
+            default:
+                break;
+        }
 
         // Si el viaje es de tipo PACKAGE y se intenta pasar el campo seatCount generamos un error
         if (journey.type === JourneyType.PACKAGE && createBookingDto.seatCount)
@@ -51,8 +66,8 @@ export class BookingService {
 
         const booking = this.bookingRepository.create({
             isShipping: journey.type === JourneyType.PACKAGE,
-            user: activeUser,
-            journey,
+            user: { id: user.id, name: user.name, lastname: user.lastname, email: user.email },
+            journey: { id: journey.id, departureTime: journey.departureTime, type: journey.type, origin: journey.origin, destination: journey.destination },
             seatCount: createBookingDto.seatCount || null
         });
 
