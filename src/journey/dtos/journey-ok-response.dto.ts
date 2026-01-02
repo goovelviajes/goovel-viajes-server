@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Vehicle } from "src/vehicle/entities/vehicle.entity";
 import { JourneyStatus } from "../enums/journey-status.enum";
 import { JourneyType } from "../enums/journey-type.enum";
-import { VehicleType } from "src/vehicle/enums/vehicle-type.enum";
 
 export class JourneyOkResponseDto {
     @ApiProperty({
@@ -89,5 +89,16 @@ export class JourneyOkResponseDto {
             "year": 1980
         }
     })
-    vehicle: { id: string; brand: string; model: string; capacity: Number; color: string; type: VehicleType; year: number }
+    vehicle: Vehicle;
+
+    @ApiPropertyOptional({
+        description: 'Lista de reservas/pasajeros (Solo necesaria para calificar)',
+        example: [
+            {
+                id: "booking-uuid",
+                user: { id: "user-uuid", name: "Carlos", lastname: "Perez" }
+            }
+        ]
+    })
+    bookings?: any[];
 }
