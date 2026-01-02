@@ -1,6 +1,7 @@
-import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
+import { JourneyStatus } from 'src/journey/enums/journey-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 import { JourneyService } from 'src/journey/journey.service';
 import { Repository } from 'typeorm';
@@ -10,7 +11,10 @@ import { BookingStatus } from './enums/booking-status.enum';
 
 @Injectable()
 export class BookingService {
-    constructor(@InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>, private readonly journeyService: JourneyService) { }
+    constructor(
+        @InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>,
+        @Inject(forwardRef(() => JourneyService))
+        private readonly journeyService: JourneyService) { }
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
         // Validamos que no se repita la reserva
@@ -84,5 +88,17 @@ export class BookingService {
         const booking = await this.bookingRepository.findOne({ where: { user: { id: userId }, journey: { id: journeyId } } });
 
         return !!booking
+    }
+
+    async getBookingsByUserId(userId: string, status: JourneyStatus) {
+        const bookings = await this.bookingRepository.find({
+            where: {
+                user: { id: userId },
+                journey: { status }
+            },
+            relations: ['journey', 'journey.user', 'journey.vehicle']
+        });
+
+        return bookings
     }
 }
