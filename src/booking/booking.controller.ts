@@ -1,12 +1,11 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { BookingService } from './booking.service';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
-import { CreateBookingDto } from './dtos/create-booking.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
-import { Booking } from './entities/booking.entity';
+import { BookingService } from './booking.service';
 import { BookingResponseDto } from './dtos/booking-response.dto';
+import { CreateBookingDto } from './dtos/create-booking.dto';
 
 @Controller('booking')
 export class BookingController {
