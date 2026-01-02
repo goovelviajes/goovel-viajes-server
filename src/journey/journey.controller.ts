@@ -1,12 +1,12 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { TokenGuard } from 'src/auth/guard/token.guard';
-import { ActiveUser } from 'src/common/decorator/active-user.decorator';
-import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
-import { CreateProposalDto } from '../proposal/dtos/create-proposal.dto';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { TokenGuard } from '../auth/guard/token.guard';
+import { ActiveUser } from '../common/decorator/active-user.decorator';
+import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { JourneyOkResponseDto } from './dtos/journey-ok-response.dto';
 import { JourneyResponseDto } from './dtos/journey-response.dto';
+import { JourneyStatus } from './enums/journey-status.enum';
 import { JourneyService } from './journey.service';
 
 @Controller('journey')
@@ -29,14 +29,20 @@ export class JourneyController {
     return this.journeyService.createJourney(activeUser, createJourneyDto)
   }
 
-  @ApiOperation({ summary: 'Obtener un listado de los viajes publicados que tengan un estado pendiente' })
+  @ApiOperation({ summary: 'Obtener mis viajes con filtros opcionales' })
   @ApiOkResponse({ type: [JourneyOkResponseDto] })
-  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting list of pending journeys' })
+  @ApiQuery({ name: 'status', required: false, enum: JourneyStatus })
+  @ApiQuery({ name: 'role', required: false, enum: ['driver', 'passenger'] })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting list of journeys' })
   @ApiBearerAuth('access-token')
   @UseGuards(TokenGuard)
   @Get()
-  getPendingJourneys() {
-    return this.journeyService.getPendingJourneys()
+  getJourneys(
+    @ActiveUser() { id: userId }: ActiveUserInterface,
+    @Query('status') status: JourneyStatus = JourneyStatus.PENDING,
+    @Query('role') role: 'driver' | 'passenger' = 'driver'
+  ) {
+    return this.journeyService.getJourneys(userId, status, role)
   }
 
   @ApiOperation({ summary: 'Cancelar un viaje publicado' })
@@ -60,6 +66,16 @@ export class JourneyController {
   @Get('own')
   getOwnjourneys(@ActiveUser() { id }: ActiveUserInterface) {
     return this.journeyService.getOwnjourneys(id);
+  }
+
+  @ApiOperation({ summary: 'Obtener viaje por id' })
+  @ApiNotFoundResponse({ description: 'Journey not found' })
+  @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting journey by id' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
+  @Get(':id')
+  getJourneyById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.journeyService.getJourneyByIdWithBookings(id)
   }
 
   @ApiOperation({ summary: 'Marcar un viaje como completado' })
