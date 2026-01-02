@@ -2,47 +2,54 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BookingStatus } from '../enums/booking-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 
+// Clase auxiliar para mejorar la documentación de las coordenadas
+class LocationResponseDto {
+    @ApiProperty({ example: -34.6037 })
+    lat: number;
+
+    @ApiProperty({ example: -58.3816 })
+    lng: number;
+
+    @ApiProperty({ example: 'Benito Juarez' })
+    name: string;
+}
+
 class BookingUserResponseDto {
-    @ApiProperty({ example: '809e5c79-4291-4a0f-88b7-e33eed183c4e' })
+    @ApiProperty({ example: 'e819066b-1da7-4960-bfde-8901d21cb8a9' })
     id: string;
 
-    @ApiProperty({ example: 'Francisco' })
+    @ApiProperty({ example: 'Tomas' })
     name: string;
 
-    @ApiProperty({ example: 'Gimenez' })
+    @ApiProperty({ example: 'Cardenas' })
     lastname: string;
+
+    @ApiProperty({ example: 'tomicardenas96@gmail.com' })
+    email: string;
 }
 
 class BookingJourneyResponseDto {
     @ApiProperty({
         description: 'Id del viaje asociado a la reserva',
-        example: 'c61a97bb-7c7c-4ec6-b3e4-3f0bd140ba17',
+        example: '05f8b021-9ac1-47b4-876e-e8ad5ae28db2',
     })
     id: string;
 
     @ApiProperty({
         description: 'Punto de partida del viaje',
-        example: {
-            lat: -34.6037,
-            lng: -58.3816,
-            name: 'Benito Juarez',
-        },
+        type: LocationResponseDto
     })
-    origin: { name: string; lat: number; lng: number };
+    origin: LocationResponseDto;
 
     @ApiProperty({
         description: 'Punto de llegada del viaje',
-        example: {
-            lat: -34.6037,
-            lng: -58.3816,
-            name: 'Tandil',
-        },
+        type: LocationResponseDto
     })
-    destination: { name: string; lat: number; lng: number };
+    destination: LocationResponseDto;
 
     @ApiProperty({
         description: 'Fecha de partida del viaje',
-        example: '2027-10-10T03:00:00.000Z',
+        example: '2026-01-01T08:02:00.000Z',
     })
     departureTime: Date;
 
@@ -57,13 +64,13 @@ class BookingJourneyResponseDto {
 export class BookingResponseDto {
     @ApiProperty({
         description: 'Id de la reserva',
-        example: 'e91a9a4e-5a6c-4b3b-9c8f-123456789abc',
+        example: 'ca6b7fa7-3afc-4655-9534-7f2cd39f480a',
     })
     id: string;
 
     @ApiProperty({
         description: 'Cantidad de asientos reservados (solo para CARPOOL)',
-        example: 2,
+        example: 1,
         nullable: true,
     })
     seatCount: number | null;
@@ -83,7 +90,7 @@ export class BookingResponseDto {
 
     @ApiProperty({
         description: 'Fecha y hora de creación de la reserva',
-        example: '2025-10-15T19:14:56.625Z',
+        example: '2026-01-02T13:53:15.555Z',
     })
     createdAt: Date;
 
