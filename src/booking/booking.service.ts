@@ -21,7 +21,6 @@ export class BookingService {
 
     async create(activeUser: ActiveUserInterface, createBookingDto: CreateBookingDto) {
         const user = await this.userService.getUserById(activeUser.id)
-        console.log(user)
 
         // Validamos que no se repita la reserva
         const bookingExists = await this.verifyIfBookingExists(activeUser.id, createBookingDto.journeyId);
@@ -38,6 +37,14 @@ export class BookingService {
         }
 
         const journey = await this.journeyService.getById(createBookingDto.journeyId);
+
+        const departureTime = new Date(journey.departureTime);
+        const now = new Date();
+
+        // Validamos que la fecha de partida no sea menor a la fecha actual
+        if (departureTime < now) {
+            throw new BadRequestException("Journey departure time is in the past")
+        }
 
         switch (journey.status) {
             case JourneyStatus.CANCELLED:
@@ -115,5 +122,18 @@ export class BookingService {
         });
 
         return bookings
+    }
+
+    async markBookingsAsCompleted(bookings: Booking[]) {
+        if (!bookings) return;
+
+        const updatedBookings = bookings.map((booking) => {
+            return {
+                ...booking,
+                status: BookingStatus.FINISHED
+            }
+        })
+
+        return await this.bookingRepository.save(updatedBookings)
     }
 }
