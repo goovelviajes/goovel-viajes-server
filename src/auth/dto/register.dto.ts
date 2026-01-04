@@ -11,7 +11,7 @@ export class RegisterDto {
   name: string;
 
   @ApiProperty({ example: 'Calo', description: 'Apellido del nuevo usuario' })
-  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/, { message: 'name must contain only letters and spaces' })
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/, { message: 'lastname must contain only letters and spaces' })
   @IsString()
   @IsNotEmpty()
   lastname: string;
