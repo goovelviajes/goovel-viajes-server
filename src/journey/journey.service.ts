@@ -213,10 +213,19 @@ export class JourneyService {
   }
 
   async markJourneyAsCompleted(id: string, activeUserId: string) {
-    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'bookings'] })
     if (!journey) throw new NotFoundException("Journey not found");
     if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be marked as completed");
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
+
+    // Verificamos que la fecha de salida sea mayor a la fecha actual
+    const departureTime = new Date(journey.departureTime);
+    const now = new Date();
+
+    if (departureTime < now) throw new BadRequestException("Journey cannot be marked as completed");
+
+    // Marcamos las reservas como completadas
+    await this.bookingService.markBookingsAsCompleted(journey.bookings);
 
     await this.journeyRepository.update(id, {
       status: JourneyStatus.COMPLETED

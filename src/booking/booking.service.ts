@@ -123,4 +123,17 @@ export class BookingService {
 
         return bookings
     }
+
+    async markBookingsAsCompleted(bookings: Booking[]) {
+        if (!bookings) return;
+
+        const updatedBookings = bookings.map((booking) => {
+            return {
+                ...booking,
+                status: BookingStatus.FINISHED
+            }
+        })
+
+        return await this.bookingRepository.save(updatedBookings)
+    }
 }
