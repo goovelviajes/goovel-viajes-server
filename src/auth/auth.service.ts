@@ -36,10 +36,6 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     try {
-      if (!registerDto.password) {
-        throw new BadRequestException('Password is neccesary for local registration');
-      }
-
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(registerDto.password, salt);
 

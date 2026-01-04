@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common';
-import { JourneyService } from './journey.service';
-import { JourneyController } from './journey.controller';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Journey } from './entities/journey.entity';
 import { UserModule } from 'src/user/user.module';
 import { VehicleModule } from 'src/vehicle/vehicle.module';
+import { Journey } from './entities/journey.entity';
+import { JourneyController } from './journey.controller';
+import { JourneyService } from './journey.service';
+import { BookingModule } from 'src/booking/booking.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Journey]), UserModule, VehicleModule],
+  imports: [TypeOrmModule.forFeature([Journey]), UserModule, VehicleModule, forwardRef(() => BookingModule)],
   controllers: [JourneyController],
   providers: [JourneyService],
   exports: [JourneyService]
