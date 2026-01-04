@@ -15,6 +15,7 @@ import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
 import { BookingService } from '../booking/booking.service';
+import { BookingStatus } from 'src/booking/enums/booking-status.enum';
 
 @Injectable()
 export class JourneyService {
@@ -26,7 +27,6 @@ export class JourneyService {
   ) { }
 
   async createJourney(activeUser: ActiveUserInterface, createJourneyDto: CreateJourneyDto) {
-    // Obtener vehículo
     const vehicle = await this.vehicleService.getVehicleById(createJourneyDto.vehicleId);
 
     if (!vehicle) {
@@ -37,18 +37,15 @@ export class JourneyService {
       throw new ForbiddenException('Only one of your own vehicles can be selected');
     }
 
-    // Validar que origen y destino no sean iguales
     if (createJourneyDto.origin.name === createJourneyDto.destination.name) {
       throw new ConflictException('Origin and destination cannot be the same');
     }
 
-    // Validar que la fecha sea futura
     const now = new Date();
     if (createJourneyDto.departureTime <= now) {
       throw new ConflictException('Departure time must be in the future');
     }
 
-    // Validar que el vehículo no tenga otro viaje el mismo día y hora
     const isJourneyRepeated = !!await this.findRepeatedJourneys(
       createJourneyDto.departureTime,
       vehicle.id,
@@ -61,7 +58,6 @@ export class JourneyService {
       );
     }
 
-    // Crear viaje
     const newJourney = this.journeyRepository.create({
       ...createJourneyDto,
       vehicle,
@@ -71,11 +67,7 @@ export class JourneyService {
     return await this.journeyRepository.save(newJourney);
   }
 
-  /**
-   * Busca viajes repetidos para un mismo vehículo en la misma fecha
-   */
   private async findRepeatedJourneys(departureTime: Date, vehicleId: string, userId: string) {
-    // Normalizar hora y eliminar segundos/milisegundos
     const startOfDay = new Date(departureTime);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -92,11 +84,8 @@ export class JourneyService {
 
   async cancelJourney(id: string, activeUserId: string) {
     const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
-
     if (!journey) throw new NotFoundException("Journey not found");
-
     if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
-
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
 
     await this.journeyRepository.update(id, {
@@ -104,30 +93,47 @@ export class JourneyService {
     });
   }
 
+  async getAllJourneysForFeed() {
+    const journeys = await this.journeyRepository.find({
+      where: { status: JourneyStatus.PENDING },
+      relations: ['user', 'user.profile', 'vehicle', 'bookings', 'bookings.user'],
+      select: {
+        user: {
+          id: true,
+          name: true,
+          lastname: true,
+          profile: { id: true, image: true }
+        },
+        vehicle: { id: true, brand: true, model: true, plate: true },
+        bookings: {
+          id: true,
+          seatCount: true,
+          status: true,
+          user: { id: true, name: true, lastname: true }
+        }
+      }
+    });
+
+    return journeys.map((journey) => this.transformJourney(journey));
+  }
+
   async getJourneys(userId: string, status: JourneyStatus, role: 'driver' | 'passenger') {
     if (role === 'driver') {
-      // CAMINO A: Soy el conductor, busco mis publicaciones
       const journeys = await this.journeyRepository.find({
-        where: {
-          status,
-          user: { id: userId } // Filtramos para que solo vea SUS viajes
-        },
-        relations: ['user', 'vehicle', 'bookings', 'bookings.user'] // Agregamos bookings para calificar
+        where: { status, user: { id: userId } },
+        relations: ['user', 'vehicle', 'bookings', 'bookings.user']
       });
-
       return journeys.map((journey) => this.mapJourneyData(journey, 'driver'));
     } else {
-      // CAMINO B: Soy pasajero, busco en qué viajes reservé
       const bookings = await this.bookingService.getBookingsByUserId(userId, status);
-
       return bookings.map((booking) => this.mapJourneyData(booking.journey, 'passenger'));
     }
   }
 
-  // Función auxiliar para no repetir el mapeo de datos (DRY)
   private mapJourneyData(journey: Journey, role: 'driver' | 'passenger') {
+    const journeyWithSeats = this.transformJourney(journey);
     return {
-      ...journey,
+      ...journeyWithSeats,
       user: {
         id: journey.user.id,
         name: journey.user.name,
@@ -135,68 +141,81 @@ export class JourneyService {
       },
       vehicle: journey.vehicle || null,
       bookings: role === 'driver' ? journey.bookings?.map(b => ({
-        id: b.user.id,
-        name: b.user.name,
-        lastname: b.user.lastname
+        id: b.user?.id,
+        name: b.user?.name,
+        lastname: b.user?.lastname,
+        seatCount: b.seatCount
       })) || [] : null
     };
   }
 
-  async getOwnjourneys(id: string) {
-    return this.journeyRepository.find({ where: { user: { id } }, order: { createdAt: "DESC" } })
+  async getOwnjourneys(userId: string) {
+    const journeys = await this.journeyRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user', 'bookings'],
+      order: { createdAt: "DESC" },
+      select: {
+        user: { id: true, name: true, lastname: true }
+      }
+    });
+    return journeys.map(journey => this.transformJourney(journey));
   }
 
   async getById(id: string) {
-    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'user.profile', 'vehicle'] });
+    const journey = await this.journeyRepository.findOne({
+      where: { id },
+      relations: ['user', 'user.profile', 'vehicle', 'bookings', 'bookings.user', 'bookings.user.profile'],
+      select: {
+        user: { id: true, name: true, lastname: true, email: true },
+        bookings: {
+          id: true, seatCount: true, status: true, createdAt: true,
+          user: {
+            id: true, name: true, lastname: true, email: true,
+            profile: { id: true, image: true }
+          }
+        }
+      }
+    });
 
-    if (!journey) {
-      throw new NotFoundException("Journey not found")
-    }
-
-    return journey;
+    if (!journey) throw new NotFoundException("Journey not found");
+    return this.transformJourney(journey);
   }
 
   async getJourneyByIdWithBookings(id: string) {
     const journey = await this.journeyRepository.createQueryBuilder('journey')
-      .select([
-        'journey.id',
-        'journey.origin',
-        'journey.destination',
-        'journey.type',
-        'journey.createdAt',
-        'journey.pricePerSeat',
-        'driver.id',
-        'driver.name',
-        'driver.lastname',
-        'bookings.id',
-        'bookings.createdAt',
-        'bookings.seatCount',
-        'user.id',
-        'user.name',
-        'user.lastname',
-        'profile.image',
-      ])
       .leftJoin('journey.bookings', 'bookings')
       .leftJoin('journey.user', 'driver')
       .leftJoin('bookings.user', 'user')
       .leftJoin('user.profile', 'profile')
+      .select([
+        'journey',
+        'bookings.id', 'bookings.seatCount', 'bookings.status', 'bookings.createdAt',
+        'driver.id', 'driver.name', 'driver.lastname', 'driver.email',
+        'user.id', 'user.name', 'user.lastname', 'user.email',
+        'profile.id', 'profile.image'
+      ])
       .where('journey.id = :id', { id })
-      .getOne()
+      .getOne();
 
-    if (!journey) {
-      throw new NotFoundException("Journey not found")
-    }
+    if (!journey) throw new NotFoundException("Journey not found");
+    return this.transformJourney(journey);
+  }
 
-    return journey;
+  private transformJourney(journey: Journey) {
+    const occupiedSeats = journey.bookings
+      ?.filter(b => b.status === BookingStatus.PENDING)
+      .reduce((acc, booking) => acc + booking.seatCount, 0) || 0;
+
+    return {
+      ...journey,
+      realAvailableSeats: journey.availableSeats - occupiedSeats,
+    };
   }
 
   async markJourneyAsCompleted(id: string, activeUserId: string) {
     const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
-
     if (!journey) throw new NotFoundException("Journey not found");
-
     if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be marked as completed");
-
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
 
     await this.journeyRepository.update(id, {
@@ -204,4 +223,3 @@ export class JourneyService {
     });
   }
 }
-
