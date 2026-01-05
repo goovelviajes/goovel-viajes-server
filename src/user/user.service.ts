@@ -73,6 +73,7 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { id },
       withDeleted: true,
+      relations: ['profile'],
       select: [
         'id',
         'name',
@@ -83,7 +84,8 @@ export class UserService {
         'updatedAt',
         'deletedAt',
         'role',
-        'isEmailConfirmed'
+        'isEmailConfirmed',
+        'profile'
       ]
     });
 

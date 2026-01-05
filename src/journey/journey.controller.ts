@@ -1,5 +1,18 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags
+} from '@nestjs/swagger';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
@@ -9,6 +22,7 @@ import { JourneyResponseDto } from './dtos/journey-response.dto';
 import { JourneyStatus } from './enums/journey-status.enum';
 import { JourneyService } from './journey.service';
 
+@ApiTags('journey')
 @Controller('journey')
 export class JourneyController {
   constructor(private readonly journeyService: JourneyService) { }
@@ -26,7 +40,14 @@ export class JourneyController {
   @ApiBearerAuth('access-token')
   @Post()
   createJourney(@ActiveUser() activeUser: ActiveUserInterface, @Body() createJourneyDto: CreateJourneyDto) {
-    return this.journeyService.createJourney(activeUser, createJourneyDto)
+    return this.journeyService.createJourney(activeUser, createJourneyDto);
+  }
+
+  @ApiOperation({ summary: 'Obtener viajes para el feed público con disponibilidad real' })
+  @ApiOkResponse({ type: [JourneyOkResponseDto] })
+  @Get('feed')
+  getAllJourneysForFeed() {
+    return this.journeyService.getAllJourneysForFeed();
   }
 
   @ApiOperation({ summary: 'Obtener mis viajes con filtros opcionales' })
@@ -42,7 +63,7 @@ export class JourneyController {
     @Query('status') status: JourneyStatus = JourneyStatus.PENDING,
     @Query('role') role: 'driver' | 'passenger' = 'driver'
   ) {
-    return this.journeyService.getJourneys(userId, status, role)
+    return this.journeyService.getJourneys(userId, status, role);
   }
 
   @ApiOperation({ summary: 'Cancelar un viaje publicado' })
@@ -51,6 +72,7 @@ export class JourneyController {
   @ApiBadRequestResponse({ description: 'Only a journey with pending status can be cancelled' })
   @ApiForbiddenResponse({ description: 'User must be journey owner' })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while cancelling journey' })
+  @ApiBearerAuth('access-token')
   @UseGuards(TokenGuard)
   @HttpCode(204)
   @Patch(':id')
@@ -68,14 +90,15 @@ export class JourneyController {
     return this.journeyService.getOwnjourneys(id);
   }
 
-  @ApiOperation({ summary: 'Obtener viaje por id' })
+  @ApiOperation({ summary: 'Obtener viaje por id con detalle de asientos y reservas' })
+  @ApiOkResponse({ type: JourneyOkResponseDto })
   @ApiNotFoundResponse({ description: 'Journey not found' })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting journey by id' })
   @ApiBearerAuth('access-token')
   @UseGuards(TokenGuard)
   @Get(':id')
   getJourneyById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.journeyService.getJourneyByIdWithBookings(id)
+    return this.journeyService.getJourneyByIdWithBookings(id);
   }
 
   @ApiOperation({ summary: 'Marcar un viaje como completado' })
@@ -83,12 +106,11 @@ export class JourneyController {
   @ApiNotFoundResponse({ description: 'Journey not found' })
   @ApiForbiddenResponse({ description: 'User must be journey owner' })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while marking journey as completed' })
+  @ApiBearerAuth('access-token')
   @UseGuards(TokenGuard)
   @HttpCode(204)
   @Patch(':id/completed')
   markJourneyAsCompleted(@Param('id', ParseUUIDPipe) id: string, @ActiveUser() { id: activeUserId }: ActiveUserInterface) {
     return this.journeyService.markJourneyAsCompleted(id, activeUserId);
   }
-
-
 }

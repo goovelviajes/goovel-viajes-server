@@ -5,11 +5,13 @@ import { IsValidBirthdate } from '../../common/decorator/is-valid-birthdate.deco
 
 export class RegisterDto {
   @ApiProperty({ example: 'Adrian', description: 'Nombre del nuevo usuario' })
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/, { message: 'name must contain only letters and spaces' })
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @ApiProperty({ example: 'Calo', description: 'Apellido del nuevo usuario' })
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/, { message: 'lastname must contain only letters and spaces' })
   @IsString()
   @IsNotEmpty()
   lastname: string;
