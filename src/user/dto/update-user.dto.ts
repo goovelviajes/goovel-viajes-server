@@ -30,28 +30,4 @@ export class UpdateUserDto {
     @IsValidBirthdate()
     @IsAdult()
     birthdate?: string;
-
-    @ApiPropertyOptional({
-        example: "2281443322",
-        description: "Numero de telefono actualizado"
-    })
-    @IsOptional()
-    @IsString()
-    phone?: string;
-
-    @ApiPropertyOptional({
-        example: "13222333",
-        description: "DNI actualizado"
-    })
-    @IsOptional()
-    @IsString()
-    dni?: string;
-
-    @ApiPropertyOptional({
-        example: "Av. Dorrego 132",
-        description: "Direccion actualizada"
-    })
-    @IsOptional()
-    @IsString()
-    address?: string;
 }
