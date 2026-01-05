@@ -38,6 +38,10 @@ export class BookingService {
 
         const journey = await this.journeyService.getById(createBookingDto.journeyId);
 
+        if (journey.user.id === activeUser.id) {
+            throw new BadRequestException("You can't book your own journey")
+        }
+
         const departureTime = new Date(journey.departureTime);
         const now = new Date();
 
