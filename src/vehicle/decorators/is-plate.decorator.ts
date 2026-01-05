@@ -14,15 +14,24 @@ export function IsPlate(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any, _args: ValidationArguments) {
           if (typeof value !== 'string') return false;
-          // Regex: autos viejos/nuevos + motos viejas/nuevas
+
+          // Formatos soportados (Argentina):
+          // 1. AAA123 (Auto viejo)
+          // 2. 123AAA (Moto vieja)
+          // 3. AB123CD (Auto nuevo/Mercosur)
+          // 4. 000AAA (Moto nueva/Mercosur - Formato A000AAA)
           const plateRegex =
-            /^([A-Z]{3}\d{3}|\d{3}[A-Z]{3}|[A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{1}\d{3}[A-Z]{3})$/;
-          return plateRegex.test(value.toUpperCase());
+            /^(?:[A-Z]{3}\d{3}|\d{3}[A-Z]{3}|[A-Z]{2}\d{3}[A-Z]{2}|[A-Z]{1}\d{3}[A-Z]{3})$/;
+
+          // Eliminamos espacios por si el usuario ingresa "A 000 AAA"
+          const cleanValue = value.replace(/\s+/g, '').toUpperCase();
+
+          return plateRegex.test(cleanValue);
         },
         defaultMessage(args: ValidationArguments) {
           return validationOptions?.message
             ? String(validationOptions.message)
-            : `${args.property} must be in format "ABC123", "123ABC", "AB123CD" or "A000AAA"`;
+            : `${args.property} debe ser una patente válida (ej: ABC123, AB123CD o A000AAA)`;
         },
       },
     });
