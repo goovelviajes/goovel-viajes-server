@@ -58,6 +58,12 @@ export class User {
   @Column({ nullable: true })
   resetToken: string;
 
+  @Column({ default: 0 })
+  failedAttempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lockedUntil: Date | null;
+
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
 

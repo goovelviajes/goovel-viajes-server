@@ -20,10 +20,13 @@ import { MailService } from 'src/mail/mail.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 import { Logger } from '@nestjs/common';
+import { TooManyRequestsException } from 'src/common/exceptions/too-many-request.exception';
 
 @Injectable()
 export class AuthService {
   private readonly logger: Logger;
+  private MAX_FAILED_ATTEMPTS = 4;
+  private LOCK_TIME_MINUTES = 5;
 
   constructor(
     private readonly userService: UserService,
@@ -77,38 +80,59 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    try {
+    const { email, password } = loginDto;
 
-      const { email, password } = loginDto;
+    // 1. Buscar usuario
+    const user = await this.userService.getUserByEmail(email);
 
-      const user = await this.userService.getUserByEmail(email);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.password);
-
-      if (!isValidPassword)
-        throw new UnauthorizedException('Invalid credentials');
-
-      const secretKey = process.env.SECRET_KEY;
-      if (!secretKey) throw new UnauthorizedException('Secret key not found');
-
-      const payload = { sub: user.id, role: user.role };
-
-      const token = await this.jwtService.signAsync(payload, {
-        secret: secretKey,
-      });
-
-      return { access_token: token };
-    } catch (error) {
-      console.error(error)
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error user login');
+    // 2. Si no existe, usamos una respuesta genérica (Seguridad)
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
+
+    // 3. Verificar si está bloqueado
+    if (user.lockedUntil && new Date() < user.lockedUntil) {
+      const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      throw new TooManyRequestsException(`Account blocked. Try again in ${remainingTime} minutes.`);
+    }
+
+    // 4. Validar contraseña
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      user.failedAttempts++;
+
+      if (user.failedAttempts >= this.MAX_FAILED_ATTEMPTS) {
+        user.lockedUntil = new Date(Date.now() + this.LOCK_TIME_MINUTES * 60 * 1000);
+      }
+
+      await this.userService.update(user.id, user);
+
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // 5. Éxito: Resetear contador
+    // Solo actualizamos si había intentos fallidos previos para ahorrar una escritura en DB
+    if (user.failedAttempts > 0 || user.lockedUntil) {
+      user.failedAttempts = 0;
+      user.lockedUntil = null;
+
+      await this.userService.update(user.id, user);
+    }
+
+    // 6. Generar Token
+    const payload = { sub: user.id, role: user.role };
+
+    const SECRET_KEY = process.env.SECRET_KEY;
+
+    if (!SECRET_KEY) throw new InternalServerErrorException('Secret key not found');
+
+    const token = await this.jwtService.signAsync(payload, {
+      secret: SECRET_KEY,
+      expiresIn: '1h'
+    });
+
+    return { access_token: token };
   }
 
   async getActiveUser(id: string) {
