@@ -2,23 +2,27 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
-  Inject,
   forwardRef
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Subject } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
+import { BookingStatus } from 'src/booking/enums/booking-status.enum';
+import { Repository } from 'typeorm';
+import { BookingService } from '../booking/booking.service';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { VehicleService } from '../vehicle/vehicle.service';
-import { Repository } from 'typeorm';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
-import { BookingService } from '../booking/booking.service';
-import { BookingStatus } from 'src/booking/enums/booking-status.enum';
 
 @Injectable()
 export class JourneyService {
+  private readonly journeyEvents$ = new Subject<any>();
+
   constructor(
     @InjectRepository(Journey) private readonly journeyRepository: Repository<Journey>,
     private readonly vehicleService: VehicleService,
@@ -83,7 +87,7 @@ export class JourneyService {
   }
 
   async cancelJourney(id: string, activeUserId: string) {
-    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'bookings', 'bookings.user'] })
     if (!journey) throw new NotFoundException("Journey not found");
     if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
@@ -91,6 +95,21 @@ export class JourneyService {
     await this.journeyRepository.update(id, {
       status: JourneyStatus.CANCELLED
     });
+
+    const passengerIds = journey.bookings
+      .map(booking => booking.user.id)
+      .filter(id => id !== undefined);
+
+    console.log(passengerIds)
+
+    // Emitimos la cancelación para todos los pasajeros
+    if (passengerIds.length > 0) {
+      this.emitCancellation({
+        usersId: passengerIds,
+        journeyId: id,
+        reason: 'El conductor ha cancelado el viaje.'
+      });
+    }
   }
 
   async getAllJourneysForFeed() {
@@ -230,5 +249,23 @@ export class JourneyService {
     await this.journeyRepository.update(id, {
       status: JourneyStatus.COMPLETED
     });
+  }
+
+  // Emitir evento de cancelación
+  emitCancellation(payload: { usersId: string[], journeyId: string, reason: string }) {
+    this.journeyEvents$.next({
+      type: 'cancelled',
+      ...payload
+    });
+  }
+
+  // Stream de actualizaciones
+  streamUpdates(userId: string) {
+    return this.journeyEvents$.asObservable().pipe(
+      filter((event) => event.usersId.includes(userId)),
+      map((event) => ({
+        data: event
+      }))
+    )
   }
 }
