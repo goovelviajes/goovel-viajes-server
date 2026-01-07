@@ -129,7 +129,7 @@ export class AuthService {
 
     const token = await this.jwtService.signAsync(payload, {
       secret: SECRET_KEY,
-      expiresIn: '1h'
+      expiresIn: '14d'
     });
 
     return { access_token: token };
