@@ -1,9 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, Inject, forwardRef } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Inject, forwardRef, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
-import { JourneyStatus } from 'src/journey/enums/journey-status.enum';
-import { JourneyType } from 'src/journey/enums/journey-type.enum';
-import { JourneyService } from 'src/journey/journey.service';
+import { ActiveUserInterface } from '../common/interface/active-user.interface';
+import { JourneyStatus } from '../journey/enums/journey-status.enum';
+import { JourneyType } from '../journey/enums/journey-type.enum';
+import { JourneyService } from '../journey/journey.service';
 import { Repository } from 'typeorm';
 import { CreateBookingDto } from './dtos/create-booking.dto';
 import { Booking } from './entities/booking.entity';
@@ -139,5 +139,21 @@ export class BookingService {
         })
 
         return await this.bookingRepository.save(updatedBookings)
+    }
+
+    async cancelBooking(passengerId: string, bookingId: string) {
+        const booking = await this.bookingRepository.findOne({ where: { id: bookingId }, relations: ['user'] })
+
+        if (!booking) {
+            throw new NotFoundException("Booking not found")
+        }
+
+        if (booking.user.id !== passengerId) {
+            throw new UnauthorizedException("You are not authorized to cancel this booking")
+        }
+
+        booking.status = BookingStatus.CANCELLED;
+
+        await this.bookingRepository.save(booking)
     }
 }
