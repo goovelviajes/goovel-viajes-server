@@ -18,6 +18,7 @@ import { VehicleService } from '../vehicle/vehicle.service';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
+import { JourneyType } from './enums/journey-type.enum';
 
 @Injectable()
 export class JourneyService {
@@ -33,22 +34,24 @@ export class JourneyService {
   async createJourney(activeUser: ActiveUserInterface, createJourneyDto: CreateJourneyDto) {
     const vehicle = await this.vehicleService.getVehicleById(createJourneyDto.vehicleId);
 
-    if (!vehicle) {
+    if (!vehicle)
       throw new NotFoundException('Vehicle not found');
-    }
 
-    if (vehicle.user.id !== activeUser.id) {
+
+    if (vehicle.user.id !== activeUser.id)
       throw new ForbiddenException('Only one of your own vehicles can be selected');
-    }
 
-    if (createJourneyDto.origin.name === createJourneyDto.destination.name) {
+
+    if (createJourneyDto.origin.name === createJourneyDto.destination.name)
       throw new ConflictException('Origin and destination cannot be the same');
-    }
+
+
+    if (createJourneyDto.availableSeats > vehicle.capacity)
+      throw new BadRequestException('Available seats cannot be greater than vehicle capacity');
 
     const now = new Date();
-    if (createJourneyDto.departureTime <= now) {
+    if (createJourneyDto.departureTime <= now)
       throw new ConflictException('Departure time must be in the future');
-    }
 
     const isJourneyRepeated = !!await this.findRepeatedJourneys(
       createJourneyDto.departureTime,
@@ -65,7 +68,8 @@ export class JourneyService {
     const newJourney = this.journeyRepository.create({
       ...createJourneyDto,
       vehicle,
-      user: activeUser
+      user: activeUser,
+      availableSeats: createJourneyDto.type === JourneyType.CARPOOL ? createJourneyDto.availableSeats || vehicle.capacity : undefined
     });
 
     return await this.journeyRepository.save(newJourney);
@@ -99,8 +103,6 @@ export class JourneyService {
     const passengerIds = journey.bookings
       .map(booking => booking.user.id)
       .filter(id => id !== undefined);
-
-    console.log(passengerIds)
 
     // Emitimos la cancelación para todos los pasajeros
     if (passengerIds.length > 0) {
