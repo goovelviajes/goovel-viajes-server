@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, Sse, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -88,6 +88,13 @@ export class JourneyController {
   @Get('own')
   getOwnjourneys(@ActiveUser() { id }: ActiveUserInterface) {
     return this.journeyService.getOwnjourneys(id);
+  }
+
+  @Sse('stream')
+  @UseGuards(TokenGuard)
+  @ApiBearerAuth('access-token')
+  streamJourneys(@ActiveUser() { id: userId }: ActiveUserInterface) {
+    return this.journeyService.streamUpdates(userId);
   }
 
   @ApiOperation({ summary: 'Obtener viaje por id con detalle de asientos y reservas' })

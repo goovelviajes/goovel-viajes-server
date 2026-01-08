@@ -17,6 +17,8 @@ import { RatingModule } from './rating/rating.module';
 import { ReportModule } from './report/report.module';
 import { UserModule } from './user/user.module';
 import { VehicleModule } from './vehicle/vehicle.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 
 @Module({
@@ -53,6 +55,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
     }),
 
     EventEmitterModule.forRoot(),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     UserModule,
     AuthModule,
     ProfileModule,
@@ -68,6 +71,6 @@ import { VehicleModule } from './vehicle/vehicle.module';
     MailModule,
   ],
   controllers: [],
-  providers: [MailService],
+  providers: [MailService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule { }

@@ -2,23 +2,28 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
-  Inject,
   forwardRef
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Subject } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
+import { BookingStatus } from 'src/booking/enums/booking-status.enum';
+import { Repository } from 'typeorm';
+import { BookingService } from '../booking/booking.service';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { VehicleService } from '../vehicle/vehicle.service';
-import { Repository } from 'typeorm';
 import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
-import { BookingService } from '../booking/booking.service';
-import { BookingStatus } from 'src/booking/enums/booking-status.enum';
+import { JourneyType } from './enums/journey-type.enum';
 
 @Injectable()
 export class JourneyService {
+  private readonly journeyEvents$ = new Subject<any>();
+
   constructor(
     @InjectRepository(Journey) private readonly journeyRepository: Repository<Journey>,
     private readonly vehicleService: VehicleService,
@@ -29,22 +34,24 @@ export class JourneyService {
   async createJourney(activeUser: ActiveUserInterface, createJourneyDto: CreateJourneyDto) {
     const vehicle = await this.vehicleService.getVehicleById(createJourneyDto.vehicleId);
 
-    if (!vehicle) {
+    if (!vehicle)
       throw new NotFoundException('Vehicle not found');
-    }
 
-    if (vehicle.user.id !== activeUser.id) {
+
+    if (vehicle.user.id !== activeUser.id)
       throw new ForbiddenException('Only one of your own vehicles can be selected');
-    }
 
-    if (createJourneyDto.origin.name === createJourneyDto.destination.name) {
+
+    if (createJourneyDto.origin.name === createJourneyDto.destination.name)
       throw new ConflictException('Origin and destination cannot be the same');
-    }
+
+
+    if (createJourneyDto.availableSeats > vehicle.capacity)
+      throw new BadRequestException('Available seats cannot be greater than vehicle capacity');
 
     const now = new Date();
-    if (createJourneyDto.departureTime <= now) {
+    if (createJourneyDto.departureTime <= now)
       throw new ConflictException('Departure time must be in the future');
-    }
 
     const isJourneyRepeated = !!await this.findRepeatedJourneys(
       createJourneyDto.departureTime,
@@ -61,7 +68,8 @@ export class JourneyService {
     const newJourney = this.journeyRepository.create({
       ...createJourneyDto,
       vehicle,
-      user: activeUser
+      user: activeUser,
+      availableSeats: createJourneyDto.type === JourneyType.CARPOOL ? createJourneyDto.availableSeats || vehicle.capacity : undefined
     });
 
     return await this.journeyRepository.save(newJourney);
@@ -83,7 +91,7 @@ export class JourneyService {
   }
 
   async cancelJourney(id: string, activeUserId: string) {
-    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user'] })
+    const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'bookings', 'bookings.user'] })
     if (!journey) throw new NotFoundException("Journey not found");
     if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
@@ -91,6 +99,21 @@ export class JourneyService {
     await this.journeyRepository.update(id, {
       status: JourneyStatus.CANCELLED
     });
+
+    const passengerIds = journey.bookings
+      .filter(booking => booking.status === BookingStatus.PENDING)
+      .map(booking => booking.user.id)
+      .filter(id => id !== undefined);
+
+    // Emitimos la cancelación para todos los pasajeros
+    if (passengerIds.length > 0) {
+      this.emitEvent({
+        usersId: passengerIds,
+        journeyId: id,
+        type: 'journey_cancelled',
+        reason: 'El conductor ha cancelado el viaje.'
+      });
+    }
   }
 
   async getAllJourneysForFeed() {
@@ -230,5 +253,23 @@ export class JourneyService {
     await this.journeyRepository.update(id, {
       status: JourneyStatus.COMPLETED
     });
+  }
+
+  // Emitir evento de cancelación
+  emitEvent(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled' | 'booking_created', reason: string }) {
+    this.journeyEvents$.next({
+      type: payload.type,
+      ...payload
+    });
+  }
+
+  // Stream de actualizaciones
+  streamUpdates(userId: string) {
+    return this.journeyEvents$.asObservable().pipe(
+      filter((event) => event.usersId.includes(userId)),
+      map((event) => ({
+        data: event
+      }))
+    )
   }
 }

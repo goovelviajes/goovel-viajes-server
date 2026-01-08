@@ -1,49 +1,32 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "src/user/entities/user.entity";
 
+// 1. Clase base con todo lo común
 export class ProfileOkResponseDto {
-    @ApiProperty({
-        description: 'Id del perfil',
-        example: '403444ee-6810-4a6d-bd1c-a291c58957bb'
-    })
+    @ApiProperty({ description: 'Id del perfil', example: '403444ee-6810-4a6d-bd1c-a291c58957bb' })
     id: string;
 
-    @ApiProperty({
-        description: 'Nombre del perfil',
-        example: 'franco-1234'
-    })
+    @ApiProperty({ description: 'Nombre del perfil', example: 'franco-1234' })
     profileName: string;
 
-    @ApiProperty({
-        description: 'Imagen del perfil',
-        example: 'https://example.com/image.jpg'
-    })
+    @ApiProperty({ description: 'Imagen del perfil', example: 'https://example.com/image.jpg' })
     image: string;
 
-    @ApiProperty({
-        description: 'Direccion del perfil',
-        example: 'Calle 123'
-    })
+    @ApiProperty({ description: 'Direccion del perfil', example: 'Calle 123' })
     address: string;
 
-    @ApiProperty({
-        description: 'Ciudad del perfil',
-        example: 'Benito Juarez'
-    })
+    @ApiProperty({ description: 'Ciudad del perfil', example: 'Benito Juarez' })
     city: string;
 
-    @ApiProperty({
-        description: 'Pais del perfil',
-        example: 'Argentina'
-    })
+    @ApiProperty({ description: 'Pais del perfil', example: 'Argentina' })
     country: string;
 
-    @ApiProperty({
-        description: 'Provincia del perfil',
-        example: 'Buenos Aires'
-    })
+    @ApiProperty({ description: 'Provincia del perfil', example: 'Buenos Aires' })
     province: string;
+}
 
+// 2. Clase extendida que incluye el usuario
+export class ProfileWithUserResponseDto extends ProfileOkResponseDto {
     @ApiProperty({
         description: 'Usuario del perfil',
         example: {

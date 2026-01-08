@@ -35,20 +35,13 @@ export class UserService {
   }
 
   async getUserByEmail(email: string) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { email },
-        select: ['id', 'name', 'lastname', 'email', 'password', 'isEmailConfirmed', 'role'],
-        withDeleted: true
-      });
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'name', 'lastname', 'email', 'password', 'isEmailConfirmed', 'role', 'failedAttempts', 'lockedUntil'],
+      withDeleted: true
+    });
 
-      return user;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error getting user by email');
-    }
+    return user;
   }
 
   async getUserById(id: string) {

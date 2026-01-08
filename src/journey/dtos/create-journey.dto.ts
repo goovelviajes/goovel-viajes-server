@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsPositive, IsString, IsUUID, Min, ValidateIf, ValidateNested } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsPositive, IsString, IsUUID, Min, ValidateIf, ValidateNested } from "class-validator";
 import { JourneyType } from "../enums/journey-type.enum";
-import { IsDifferentLocation } from "src/common/decorator/is-diferent-location.decorator";
-import { IsFutureDate } from "src/common/decorator/is-future-date.decorator";
-import { LocationDto } from "src/common/dtos/location.dto";
+import { IsDifferentLocation } from "../../common/decorator/is-diferent-location.decorator";
+import { IsFutureDate } from "../../common/decorator/is-future-date.decorator";
+import { LocationDto } from "../../common/dtos/location.dto";
 
 export class CreateJourneyDto {
     @ApiProperty({ type: LocationDto })
@@ -33,8 +33,9 @@ export class CreateJourneyDto {
     @Type(() => Number)
     @IsInt()
     @IsPositive()
+    @IsOptional()
     @IsNotEmpty({ message: 'availableSeats is required for carpool journeys' })
-    availableSeats: number;
+    availableSeats?: number;
 
     @ApiPropertyOptional({ example: 2500.5, description: 'Precio por asiento. Opcional si es un viaje de tipo PACKAGE' })
     @ValidateIf(o => o.type === JourneyType.CARPOOL)
