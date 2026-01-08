@@ -7,7 +7,7 @@ import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { ProfileOkResponseDto } from './dtos/profile-ok-response.dto';
+import { ProfileOkResponseDto, ProfileWithUserResponseDto } from './dtos/profile-ok-response.dto';
 
 @Controller('profile')
 export class ProfileController {
@@ -20,11 +20,10 @@ export class ProfileController {
     type: UpdateProfileDto,
   })
   @ApiNotFoundResponse({ description: 'Perfil no encontrado' })
-  @ApiNoContentResponse()
+  @ApiOkResponse({ description: 'Perfil actualizado correctamente', type: ProfileOkResponseDto })
   @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })
   @UseGuards(TokenGuard)
-  @HttpCode(204)
   @Patch()
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
@@ -45,7 +44,7 @@ export class ProfileController {
   }
 
   @ApiOperation({ summary: 'Obtener datos del perfil' })
-  @ApiOkResponse({ description: 'Perfil obtenido correctamente', type: ProfileOkResponseDto })
+  @ApiOkResponse({ description: 'Perfil obtenido correctamente', type: ProfileWithUserResponseDto })
   @ApiNotFoundResponse({ description: 'Perfil o usuario no encontrados' })
   @ApiUnauthorizedResponse({ description: 'Usuario no autorizado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno del servidor' })

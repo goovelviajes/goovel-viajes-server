@@ -1,5 +1,5 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
 import { TokenGuard } from 'src/auth/guard/token.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
@@ -51,5 +51,29 @@ export class BookingController {
     @Body() createBookingDto: CreateBookingDto,
   ) {
     return this.bookingService.create(activeUser, createBookingDto);
+  }
+
+  @HttpCode(204)
+  @ApiOperation({
+    summary: 'Cancelar una reserva',
+    description: 'Permite cancelar una reserva existente.',
+  })
+  @ApiNoContentResponse({
+    description: 'Booking successfully canceled',
+  })
+  @ApiNotFoundResponse({
+    description: 'Booking not found: la reserva no existe.',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Unexpected error while canceling booking: error inesperado al cancelar la reserva.',
+  })
+  @ApiBearerAuth('access-token')
+  @UseGuards(TokenGuard)
+  @Patch(':bookingId')
+  cancelBooking(
+    @ActiveUser() activeUser: ActiveUserInterface,
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+  ) {
+    return this.bookingService.cancelBooking(activeUser.id, bookingId);
   }
 }

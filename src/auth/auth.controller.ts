@@ -10,6 +10,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +20,7 @@ export class AuthController {
   @ApiCreatedResponse({ description: 'Registration Successful' })
   @ApiBadRequestResponse({ description: 'Invalid birthdate format or email is already existent or password is neccesary for local registration' })
   @ApiInternalServerErrorResponse({ description: 'Error user register or creating user' })
+  @Throttle({ default: { limit: 3, ttl: 3600000 } })
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
@@ -33,6 +35,7 @@ export class AuthController {
   @ApiInternalServerErrorResponse({
     description: 'Error user login or getting unique user profile name',
   })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);

@@ -41,6 +41,9 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
+  // Configuración para que el throttle funcione
+  (app.getHttpAdapter().getInstance() as any).set('trust proxy', 'loopback');
+
   await app.listen(process.env.PORT || 3050);
 }
 bootstrap();

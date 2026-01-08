@@ -34,7 +34,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   password?: string;
 
   @Column({ type: 'date', nullable: true })
@@ -57,6 +57,12 @@ export class User {
 
   @Column({ nullable: true })
   resetToken: string;
+
+  @Column({ default: 0 })
+  failedAttempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lockedUntil: Date | null;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
