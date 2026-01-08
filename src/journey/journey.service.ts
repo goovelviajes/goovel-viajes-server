@@ -101,6 +101,7 @@ export class JourneyService {
     });
 
     const passengerIds = journey.bookings
+      .filter(booking => booking.status === BookingStatus.PENDING)
       .map(booking => booking.user.id)
       .filter(id => id !== undefined);
 
@@ -109,6 +110,7 @@ export class JourneyService {
       this.emitCancellation({
         usersId: passengerIds,
         journeyId: id,
+        type: 'journey_cancelled',
         reason: 'El conductor ha cancelado el viaje.'
       });
     }
@@ -254,9 +256,9 @@ export class JourneyService {
   }
 
   // Emitir evento de cancelación
-  emitCancellation(payload: { usersId: string[], journeyId: string, reason: string }) {
+  emitCancellation(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled', reason: string }) {
     this.journeyEvents$.next({
-      type: 'cancelled',
+      type: payload.type,
       ...payload
     });
   }
