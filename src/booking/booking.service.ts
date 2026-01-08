@@ -82,6 +82,13 @@ export class BookingService {
             seatCount: createBookingDto.seatCount || null
         });
 
+        this.journeyService.emitEvent({
+            usersId: [journey.user.id],
+            journeyId: journey.id,
+            type: 'booking_created',
+            reason: `¡Nueva reserva! ${user.name} ${user.lastname} se ha unido a tu viaje.`
+        });
+
         return await this.bookingRepository.save(booking)
     }
 
@@ -161,7 +168,7 @@ export class BookingService {
 
         const driverId = booking.journey.user.id;
 
-        this.journeyService.emitCancellation({
+        this.journeyService.emitEvent({
             usersId: [driverId],
             journeyId: booking.journey.id,
             type: 'booking_cancelled',
