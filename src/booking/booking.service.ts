@@ -142,7 +142,10 @@ export class BookingService {
     }
 
     async cancelBooking(passengerId: string, bookingId: string) {
-        const booking = await this.bookingRepository.findOne({ where: { id: bookingId }, relations: ['user'] })
+        const booking = await this.bookingRepository.findOne({
+            where: { id: bookingId },
+            relations: ['user', 'journey', 'journey.user']
+        })
 
         if (!booking) {
             throw new NotFoundException("Booking not found")
@@ -155,5 +158,14 @@ export class BookingService {
         booking.status = BookingStatus.CANCELLED;
 
         await this.bookingRepository.save(booking)
+
+        const driverId = booking.journey.user.id;
+
+        this.journeyService.emitCancellation({
+            usersId: [driverId],
+            journeyId: booking.journey.id,
+            type: 'booking_cancelled',
+            reason: `El pasajero ${booking.user.name} ${booking.user.lastname} ha cancelado su reserva.`
+        })
     }
 }
