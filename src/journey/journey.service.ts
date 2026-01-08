@@ -107,7 +107,7 @@ export class JourneyService {
 
     // Emitimos la cancelación para todos los pasajeros
     if (passengerIds.length > 0) {
-      this.emitCancellation({
+      this.emitEvent({
         usersId: passengerIds,
         journeyId: id,
         type: 'journey_cancelled',
@@ -256,7 +256,7 @@ export class JourneyService {
   }
 
   // Emitir evento de cancelación
-  emitCancellation(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled', reason: string }) {
+  emitEvent(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled' | 'booking_created', reason: string }) {
     this.journeyEvents$.next({
       type: payload.type,
       ...payload
