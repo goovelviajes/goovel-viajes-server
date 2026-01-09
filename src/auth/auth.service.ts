@@ -91,9 +91,15 @@ export class AuthService {
     }
 
     // 3. Verificar si está bloqueado
-    if (user.lockedUntil && new Date() < user.lockedUntil) {
-      const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
-      throw new TooManyRequestsException(`Account blocked. Try again in ${remainingTime} minutes.`);
+    if (user.lockedUntil) {
+      if (new Date() < user.lockedUntil) {
+        const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+        throw new TooManyRequestsException(`Account blocked. Try again in ${remainingTime} minutes.`);
+      } else {
+        user.lockedUntil = null;
+        user.failedAttempts = 0;
+        await this.userService.update(user.id, user);
+      }
     }
 
     // 4. Validar contraseña
@@ -107,16 +113,14 @@ export class AuthService {
       }
 
       await this.userService.update(user.id, user);
-
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // 5. Éxito: Resetear contador
     // Solo actualizamos si había intentos fallidos previos para ahorrar una escritura en DB
-    if (user.failedAttempts > 0 || user.lockedUntil) {
+    if (user.failedAttempts > 0) {
       user.failedAttempts = 0;
       user.lockedUntil = null;
-
       await this.userService.update(user.id, user);
     }
 
