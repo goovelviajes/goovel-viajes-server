@@ -55,6 +55,19 @@ export class UserController {
   @Patch('grant-verification')
   @HttpCode(204)
   grantVerification(@Body() { email }: GrantVerificationDto) {
-    return this.userService.grantVerification(email);
+    return this.userService.grantVerification(email, true);
+  }
+
+  @UseGuards(TokenGuard, RoleGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Quitar verificación de profesional a un usuario' })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error revoking verification' })
+  @ApiBearerAuth('access-token')
+  @Patch('revoke-verification')
+  @HttpCode(204)
+  revokeVerification(@Body() { email }: GrantVerificationDto) {
+    return this.userService.grantVerification(email, false);
   }
 }

@@ -184,14 +184,14 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async grantVerification(email: string) {
+  async grantVerification(email: string, isVerifiedUser: boolean) {
     const user = await this.getUserByEmail(email);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    user.isVerifiedUser = true;
+    user.isVerifiedUser = isVerifiedUser;
 
     await this.userRepository.save(user);
   }
