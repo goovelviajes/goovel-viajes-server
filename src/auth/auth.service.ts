@@ -21,6 +21,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 import { Logger } from '@nestjs/common';
 import { TooManyRequestsException } from 'src/common/exceptions/too-many-request.exception';
+import { RolesEnum } from 'src/common/enums/roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -295,5 +296,16 @@ export class AuthService {
       }
       throw new BadRequestException('Token expired or invalid');
     }
+  }
+
+  async turnUserIntoAdmin(email: string) {
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.role = RolesEnum.ADMIN;
+    await this.userService.update(user.id, user);
   }
 }
