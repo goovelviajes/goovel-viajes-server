@@ -142,7 +142,7 @@ export class BookingService {
         const updatedBookings = bookings.map((booking) => {
             return {
                 ...booking,
-                status: BookingStatus.FINISHED
+                status: BookingStatus.COMPLETED
             }
         })
 
