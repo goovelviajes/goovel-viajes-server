@@ -261,6 +261,23 @@ export class JourneyService {
     });
   }
 
+  async countCompletedByDriver(userId: string) {
+    const journeys = await this.journeyRepository.count({
+      where: {
+        user: { id: userId },
+        status: JourneyStatus.COMPLETED
+      }
+    });
+
+    return journeys;
+  }
+
+  async countCompletedByPassenger(userId: string) {
+    const bookings = await this.bookingService.getBookingsByUserId(userId, JourneyStatus.COMPLETED);
+
+    return bookings.length;
+  }
+
   // Emitir evento de cancelación
   emitEvent(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled' | 'booking_created', reason: string }) {
     this.journeyEvents$.next({
