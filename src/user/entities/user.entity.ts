@@ -64,6 +64,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lockedUntil: Date | null;
 
+  @Column({ default: false })
+  isVerifiedUser: boolean;
+
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
 
