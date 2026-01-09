@@ -21,6 +21,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 import { Logger } from '@nestjs/common';
 import { TooManyRequestsException } from 'src/common/exceptions/too-many-request.exception';
+import { RolesEnum } from 'src/common/enums/roles.enum';
 
 @Injectable()
 export class AuthService {
@@ -91,9 +92,15 @@ export class AuthService {
     }
 
     // 3. Verificar si está bloqueado
-    if (user.lockedUntil && new Date() < user.lockedUntil) {
-      const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
-      throw new TooManyRequestsException(`Account blocked. Try again in ${remainingTime} minutes.`);
+    if (user.lockedUntil) {
+      if (new Date() < user.lockedUntil) {
+        const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+        throw new TooManyRequestsException(`Account blocked. Try again in ${remainingTime} minutes.`);
+      } else {
+        user.lockedUntil = null;
+        user.failedAttempts = 0;
+        await this.userService.update(user.id, user);
+      }
     }
 
     // 4. Validar contraseña
@@ -107,16 +114,14 @@ export class AuthService {
       }
 
       await this.userService.update(user.id, user);
-
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // 5. Éxito: Resetear contador
     // Solo actualizamos si había intentos fallidos previos para ahorrar una escritura en DB
-    if (user.failedAttempts > 0 || user.lockedUntil) {
+    if (user.failedAttempts > 0) {
       user.failedAttempts = 0;
       user.lockedUntil = null;
-
       await this.userService.update(user.id, user);
     }
 
@@ -291,5 +296,16 @@ export class AuthService {
       }
       throw new BadRequestException('Token expired or invalid');
     }
+  }
+
+  async turnUserIntoAdmin(email: string) {
+    const user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.role = RolesEnum.ADMIN;
+    await this.userService.update(user.id, user);
   }
 }

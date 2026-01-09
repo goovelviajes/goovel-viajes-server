@@ -6,10 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -182,5 +182,17 @@ export class UserService {
     user.isEmailConfirmed = true;
 
     return this.userRepository.save(user);
+  }
+
+  async grantVerification(email: string, isVerifiedUser: boolean) {
+    const user = await this.getUserByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isVerifiedUser = isVerifiedUser;
+
+    await this.userRepository.save(user);
   }
 }

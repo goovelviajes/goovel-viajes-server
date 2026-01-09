@@ -76,4 +76,16 @@ export class RatingService {
             throw new BadRequestException('Passenger must have travelled in the journey to rate it');
         }
     }
+
+    async getAverageRating(ratedUserId: string) {
+        const ratings = await this.ratingRepository.find({ where: { ratedUser: { id: ratedUserId } } });
+
+        if (ratings.length === 0) {
+            return 0;
+        }
+
+        const averageRating = ratings.reduce((acc, rating) => acc + Number(rating.rating), 0) / ratings.length;
+
+        return averageRating;
+    }
 }

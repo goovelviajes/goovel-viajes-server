@@ -82,6 +82,7 @@ export class BookingService {
             seatCount: createBookingDto.seatCount || null
         });
 
+        // Emitir evento de reserva creada
         this.journeyService.emitEvent({
             usersId: [journey.user.id],
             journeyId: journey.id,
@@ -141,7 +142,7 @@ export class BookingService {
         const updatedBookings = bookings.map((booking) => {
             return {
                 ...booking,
-                status: BookingStatus.FINISHED
+                status: BookingStatus.COMPLETED
             }
         })
 
@@ -154,13 +155,14 @@ export class BookingService {
             relations: ['user', 'journey', 'journey.user']
         })
 
-        if (!booking) {
-            throw new NotFoundException("Booking not found")
-        }
+        if (!booking)
+            throw new NotFoundException("Booking not found");
 
-        if (booking.user.id !== passengerId) {
-            throw new UnauthorizedException("You are not authorized to cancel this booking")
-        }
+        if (booking.status === BookingStatus.CANCELLED)
+            throw new BadRequestException("Booking is already cancelled");
+
+        if (booking.user.id !== passengerId)
+            throw new UnauthorizedException("You are not authorized to cancel this booking");
 
         booking.status = BookingStatus.CANCELLED;
 

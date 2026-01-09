@@ -3,11 +3,13 @@ import { ProfileService } from './profile.service';
 import { ProfileController } from './profile.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profile } from './entities/profile.entity';
-import { UserModule } from 'src/user/user.module';
-import { UploadModule } from 'src/upload/upload.module';
+import { UserModule } from '../user/user.module';
+import { UploadModule } from '../upload/upload.module';
+import { RatingModule } from '../rating/rating.module';
+import { JourneyModule } from '../journey/journey.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Profile]), UserModule, UploadModule],
+  imports: [TypeOrmModule.forFeature([Profile]), UserModule, UploadModule, RatingModule, JourneyModule],
   controllers: [ProfileController],
   providers: [ProfileService],
   exports: [ProfileService]
