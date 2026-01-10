@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MailService {
@@ -40,6 +41,29 @@ export class MailService {
         } catch (error) {
             console.error('Error al enviar el correo de confirmación:', error);
             throw new InternalServerErrorException('Error while sending confirmation email');
+        }
+    }
+
+    async sendReportThresholdEmail(user: User, count: number): Promise<void> {
+        try {
+            const goovelEmail = process.env.GOOVEL_MAIL;
+
+            await this.mailerService.sendMail({
+                to: goovelEmail,
+                subject: '⚠️ Alerta: Usuario con múltiples reportes',
+                template: './report-threshold',
+                context: {
+                    year: new Date().getFullYear(),
+                    reportedName: user.name,
+                    reportedLastName: user.lastname,
+                    reportedEmail: user.email,
+                    count,
+                    adminUrl: process.env.FRONTEND_URL + '/admin/reports',
+                },
+            });
+        } catch (error) {
+            console.error('Error al enviar el correo de reporte:', error);
+            throw new InternalServerErrorException('Error while sending report threshold email');
         }
     }
 }
