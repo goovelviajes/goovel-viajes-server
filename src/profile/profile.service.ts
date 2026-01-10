@@ -4,15 +4,19 @@ import { Repository } from 'typeorm';
 import { Profile } from './entities/profile.entity';
 import { generateRandomProfilename } from '../profile/lib/generate-username';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
-import { FileUploadService } from 'src/upload/file-upload.service';
-import { UserService } from 'src/user/user.service';
+import { FileUploadService } from '../upload/file-upload.service';
+import { UserService } from '../user/user.service';
+import { RatingService } from '../rating/rating.service';
+import { JourneyService } from '../journey/journey.service';
 
 @Injectable()
 export class ProfileService {
     constructor(
         @InjectRepository(Profile) private readonly profileRepository: Repository<Profile>,
         private readonly fileUploadService: FileUploadService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly ratingService: RatingService,
+        private readonly journeyService: JourneyService
     ) { }
 
     async getUniqueProfileName(name: string) {
@@ -70,7 +74,11 @@ export class ProfileService {
     }
 
     async getProfile(profileName: string) {
-        const profile = await this.profileRepository.findOne({ where: { profileName }, select: ['id', 'profileName', 'image', 'address', 'city', 'country', 'province'] });
+        const profile = await this.profileRepository.findOne({
+            where: { profileName },
+            select: ['id', 'profileName', 'image', 'address', 'city', 'country', 'province']
+        });
+
         if (!profile) {
             throw new NotFoundException("Profile not found");
         }
@@ -78,6 +86,17 @@ export class ProfileService {
         const user = await this.userService.getUserByProfileName(profileName);
         profile.user = user;
 
-        return profile;
+        const averageRating = await this.ratingService.getAverageRating(user.id);
+        const countCompletedByDriver = await this.journeyService.countCompletedByDriver(user.id);
+        const countCompletedByPassenger = await this.journeyService.countCompletedByPassenger(user.id);
+
+        return {
+            ...profile,
+            stats: {
+                averageRating,
+                countCompletedByDriver,
+                countCompletedByPassenger
+            }
+        };
     }
 }

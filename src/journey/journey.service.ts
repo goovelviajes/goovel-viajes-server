@@ -92,9 +92,15 @@ export class JourneyService {
 
   async cancelJourney(id: string, activeUserId: string) {
     const journey = await this.journeyRepository.findOne({ where: { id }, relations: ['user', 'bookings', 'bookings.user'] })
-    if (!journey) throw new NotFoundException("Journey not found");
-    if (journey.status !== JourneyStatus.PENDING) throw new BadRequestException("Only a journey with pending status can be cancelled");
-    if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
+
+    if (!journey)
+      throw new NotFoundException("Journey not found");
+
+    if (journey.status !== JourneyStatus.PENDING)
+      throw new BadRequestException("Only a journey with pending status can be cancelled");
+
+    if (journey.user.id !== activeUserId)
+      throw new ForbiddenException("User must be journey owner");
 
     await this.journeyRepository.update(id, {
       status: JourneyStatus.CANCELLED
@@ -253,6 +259,23 @@ export class JourneyService {
     await this.journeyRepository.update(id, {
       status: JourneyStatus.COMPLETED
     });
+  }
+
+  async countCompletedByDriver(userId: string) {
+    const journeys = await this.journeyRepository.count({
+      where: {
+        user: { id: userId },
+        status: JourneyStatus.COMPLETED
+      }
+    });
+
+    return journeys;
+  }
+
+  async countCompletedByPassenger(userId: string) {
+    const bookings = await this.bookingService.getBookingsByUserId(userId, JourneyStatus.COMPLETED);
+
+    return bookings.length;
   }
 
   // Emitir evento de cancelación

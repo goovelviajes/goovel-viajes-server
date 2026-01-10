@@ -55,7 +55,7 @@ export class User {
   @Column({ default: false })
   isEmailConfirmed: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   resetToken: string;
 
   @Column({ default: 0 })
@@ -63,6 +63,9 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   lockedUntil: Date | null;
+
+  @Column({ default: false })
+  isVerifiedUser: boolean;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;

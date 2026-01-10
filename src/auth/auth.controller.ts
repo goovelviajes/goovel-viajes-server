@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
 import { AuthService } from './auth.service';
@@ -11,6 +11,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 import { Throttle } from '@nestjs/throttler';
+import { RoleGuard } from './guard/role.guard';
+import { Roles } from './decorators/roles.decorator';
+import { TurnAdminDto } from './dto/turn-admin.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -98,5 +101,18 @@ export class AuthController {
   @Get('confirm')
   confirmEmail(@Query('token') token: string) {
     return this.authService.confirmEmail(token);
+  }
+
+  @UseGuards(TokenGuard, RoleGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Dar admin a un usuario' })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error granting admin' })
+  @ApiBearerAuth('access-token')
+  @Patch('turn-into-admin')
+  @HttpCode(204)
+  turnUserIntoAdmin(@Body() { email }: TurnAdminDto) {
+    return this.authService.turnUserIntoAdmin(email);
   }
 }

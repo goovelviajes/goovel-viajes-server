@@ -28,6 +28,20 @@ export class ProfileOkResponseDto {
 // 2. Clase extendida que incluye el usuario
 export class ProfileWithUserResponseDto extends ProfileOkResponseDto {
     @ApiProperty({
+        description: 'Estadísticas del perfil',
+        example: {
+            averageRating: 4.5,
+            countCompletedByDriver: 10,
+            countCompletedByPassenger: 5
+        }
+    })
+    stats: {
+        averageRating: number;
+        countCompletedByDriver: number;
+        countCompletedByPassenger: number;
+    };
+
+    @ApiProperty({
         description: 'Usuario del perfil',
         example: {
             id: "dfea7f6d-de51-4558-9e65-4cae57265ef2",
