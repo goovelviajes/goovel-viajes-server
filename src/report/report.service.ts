@@ -78,4 +78,38 @@ export class ReportService {
             await this.mailService.sendReportThresholdEmail(reportedUser, count);
         }
     }
+
+    async findAllReports(status: ReportStatus) {
+        return this.reportRepository.find({
+            where: {
+                status
+            },
+            relations: ['reporter', 'reported', 'reporter.profile', 'reported.profile'],
+            select: {
+                reporter: {
+                    id: true,
+                    name: true,
+                    lastname: true,
+                    email: true,
+                    profile: {
+                        id: true,
+                        image: true
+                    }
+                },
+                reported: {
+                    id: true,
+                    name: true,
+                    lastname: true,
+                    email: true,
+                    profile: {
+                        id: true,
+                        image: true
+                    }
+                }
+            },
+            order: {
+                createdAt: 'DESC'
+            }
+        });
+    }
 }
