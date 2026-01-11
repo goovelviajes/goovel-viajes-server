@@ -7,6 +7,7 @@ import { UserService } from '../user/user.service';
 import { MailService } from '../mail/mail.service';
 import { User } from '../user/entities/user.entity';
 import { ReportStatus } from './enums/report-status.enum';
+import { UpdateReportDto } from './dtos/update-report.dto';
 
 @Injectable()
 export class ReportService {
@@ -111,5 +112,48 @@ export class ReportService {
                 createdAt: 'DESC'
             }
         });
+    }
+
+    async updateStatus(id: string, updateDto: UpdateReportDto) {
+        // 1. Buscamos el reporte con las relaciones necesarias
+        const report = await this.reportRepository.findOne({
+            where: { id },
+            relations: ['reporter', 'reported']
+        });
+
+        if (!report) {
+            throw new NotFoundException(`Report with ID ${id} not found`);
+        }
+
+        // 2. Bloqueamos cambios si ya estaba resuelto (opcional, por integridad)
+        if (report.status !== ReportStatus.PENDING && report.status === updateDto.status) {
+            throw new BadRequestException('Report already has this status');
+        }
+
+        // 3. Aplicamos los cambios
+        report.status = updateDto.status;
+        report.adminNotes = updateDto.adminNotes;
+
+        const updatedReport = await this.reportRepository.save(report);
+
+        // 4. Lógica secundaria: Notificar al reportero
+        if (updateDto.status === ReportStatus.RESOLVED) {
+            try {
+                await this.mailService.sendReportResolvedEmail(
+                    report.reporter.email,
+                    report.reporter.name,
+                    report.reporter.lastname,
+                );
+            } catch (error) {
+                console.error('Error sending resolution email:', error);
+            }
+        }
+
+        return {
+            message: 'Report updated successfully',
+            id: report.id,
+            status: report.status,
+            adminNotes: report.adminNotes
+        };
     }
 }

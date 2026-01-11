@@ -1,16 +1,18 @@
-import { Body, Controller, Get, ParseEnumPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, ParseEnumPipe, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleGuard } from 'src/auth/guard/role.guard';
+import { RolesEnum } from 'src/common/enums/roles.enum';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { CreateReportResponseDto } from './dtos/create-report-response.dto';
 import { CreateReportDto } from './dtos/create-report.dto';
-import { ReportService } from './report.service';
-import { RoleGuard } from 'src/auth/guard/role.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { RolesEnum } from 'src/common/enums/roles.enum';
-import { ReportStatus } from './enums/report-status.enum';
 import { ReportOkResponseDto } from './dtos/report-ok-response.dto';
+import { UpdateReportDto } from './dtos/update-report.dto';
+import { UpdatedReportResponseDto } from './dtos/updated-report-response.dto';
+import { ReportStatus } from './enums/report-status.enum';
+import { ReportService } from './report.service';
 
 @ApiTags('Report')
 @Controller('report')
@@ -42,5 +44,20 @@ export class ReportController {
   @Get()
   async findAllReports(@Query('status', new ParseEnumPipe(ReportStatus)) status: ReportStatus) {
     return this.reportService.findAllReports(status);
+  }
+
+  @UseGuards(TokenGuard, RoleGuard)
+  @Roles(RolesEnum.ADMIN)
+  @ApiOperation({ summary: 'Actualizar el estado de un reporte' })
+  @ApiOkResponse({ description: 'Report updated successfully', type: UpdatedReportResponseDto })
+  @ApiNotFoundResponse({ description: 'Report not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error updating report' })
+  @ApiBearerAuth('access-token')
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id', ParseUUIDPipe) reportId: string,
+    @Body() updateDto: UpdateReportDto
+  ) {
+    return await this.reportService.updateStatus(reportId, updateDto);
   }
 }
