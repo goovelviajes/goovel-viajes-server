@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { JourneyType } from "../enums/journey-type.enum";
 
-class LocationResponseDto {
+class JourneyLocationResponseDto {
     @ApiProperty({ example: "Benito Juarez" })
     name: string;
 
@@ -12,7 +12,7 @@ class LocationResponseDto {
     lng: number;
 }
 
-class UserResponseDto {
+class JourneyUserResponseDto {
     @ApiProperty({ example: "a2243e00-acd3-4c75-bf9d-ee0b445103cb" })
     id: string;
 
@@ -46,7 +46,7 @@ class VehicleUserResponseDto {
     id: string;
 }
 
-class VehicleResponseDto {
+class JourneyVehicleResponseDto {
     @ApiProperty({ example: "eb079dcb-fa64-4d19-a73b-667e2c91ac82" })
     id: string;
 
@@ -76,11 +76,11 @@ class VehicleResponseDto {
 }
 
 export class JourneyResponseDto {
-    @ApiProperty({ type: LocationResponseDto })
-    origin: LocationResponseDto;
+    @ApiProperty({ type: JourneyLocationResponseDto })
+    origin: JourneyLocationResponseDto;
 
-    @ApiProperty({ type: LocationResponseDto })
-    destination: LocationResponseDto;
+    @ApiProperty({ type: JourneyLocationResponseDto })
+    destination: JourneyLocationResponseDto;
 
     @ApiProperty({ example: "2025-11-22T08:00:00.000Z" })
     departureTime: string;
@@ -94,11 +94,11 @@ export class JourneyResponseDto {
     @ApiProperty({ enum: JourneyType, example: JourneyType.CARPOOL })
     type: JourneyType;
 
-    @ApiProperty({ type: UserResponseDto })
-    user: UserResponseDto;
+    @ApiProperty({ type: JourneyUserResponseDto })
+    user: JourneyUserResponseDto;
 
-    @ApiProperty({ type: VehicleResponseDto })
-    vehicle: VehicleResponseDto;
+    @ApiProperty({ type: JourneyVehicleResponseDto })
+    vehicle: JourneyVehicleResponseDto;
 
     @ApiProperty({ example: "296386a0-d563-4ff6-a8ad-2e1491ac947c" })
     id: string;

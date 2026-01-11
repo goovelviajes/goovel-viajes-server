@@ -3,7 +3,7 @@ import { BookingStatus } from '../enums/booking-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
 
 // Clase auxiliar para mejorar la documentación de las coordenadas
-class LocationResponseDto {
+class BookingLocationResponseDto {
     @ApiProperty({ example: -34.6037 })
     lat: number;
 
@@ -37,15 +37,15 @@ class BookingJourneyResponseDto {
 
     @ApiProperty({
         description: 'Punto de partida del viaje',
-        type: LocationResponseDto
+        type: BookingLocationResponseDto
     })
-    origin: LocationResponseDto;
+    origin: BookingLocationResponseDto;
 
     @ApiProperty({
         description: 'Punto de llegada del viaje',
-        type: LocationResponseDto
+        type: BookingLocationResponseDto
     })
-    destination: LocationResponseDto;
+    destination: BookingLocationResponseDto;
 
     @ApiProperty({
         description: 'Fecha de partida del viaje',
