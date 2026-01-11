@@ -66,4 +66,22 @@ export class MailService {
             throw new InternalServerErrorException('Error while sending report threshold email');
         }
     }
+
+    async sendReportResolvedEmail(reporterEmail: string, reporterName: string, reporterLastName: string) {
+        try {
+            await this.mailerService.sendMail({
+                to: reporterEmail,
+                subject: 'Actualización sobre el reporte enviado - Goovel',
+                template: './report-resolved',
+                context: {
+                    reporterName: reporterName,
+                    reporterLastName: reporterLastName,
+                    url: process.env.FRONTEND_URL,
+                    year: new Date().getFullYear(),
+                },
+            });
+        } catch (error) {
+            console.error('Error al enviar el email de resolución:', error);
+        }
+    }
 }
