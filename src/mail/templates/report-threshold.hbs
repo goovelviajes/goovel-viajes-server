@@ -1,0 +1,46 @@
+<div style="background-color: #f4f4f4; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div
+        style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+
+        <div style="background-color: #ff6b00; padding: 12px; text-align: center;">
+        </div>
+
+        <div style="padding: 30px; color: #333333;">
+            <h2 style="color: #444444; text-align: center; font-size: 25px;">Alerta de Seguridad</h2>
+
+            <p style="font-size: 16px; line-height: 1.6; text-align: center;">
+                Se ha detectado una actividad inusual. El usuario <strong>{{reportedName}}</strong> ha alcanzado un
+                límite crítico de reportes en la plataforma.
+            </p>
+
+            <div style="background-color: #fff5eb; border-left: 4px solid #ff6b00; padding: 15px; margin: 25px 0;">
+                <p style="margin: 5px 0; font-size: 15px;"><strong>Usuario reportado:</strong> {{reportedName}}
+                    {{reportedLastName}}</p>
+                <p style="margin: 5px 0; font-size: 15px;"><strong>Email:</strong> {{reportedEmail}}</p>
+                <p style="margin: 5px 0; font-size: 15px;"><strong>Total de reportes:</strong> <span
+                        style="color: #d93025; font-weight: bold;">{{count}}</span></p>
+            </div>
+
+            <p style="font-size: 16px; line-height: 1.6; text-align: center;">
+                Es necesario revisar el historial de este usuario para determinar si se deben tomar medidas
+                disciplinarias o la suspensión de la cuenta.
+            </p>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{{adminUrl}}"
+                    style="background-color: #333333; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">
+                    Revisar en el Panel de Admin
+                </a>
+            </div>
+
+            <p style="font-size: 14px; color: #777777; text-align: center;">
+                Este es un mensaje automático generado por el sistema de moderación de Goovel.
+            </p>
+        </div>
+
+        <div
+            style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999999; border-top: 1px solid #eeeeee;">
+            <p style="margin: 5px 0;">© {{year}} Goovel Viajes - Equipo de Moderación.</p>
+        </div>
+    </div>
+</div>
