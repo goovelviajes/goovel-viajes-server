@@ -1,15 +1,20 @@
-import { User } from "../../user/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "../../user/entities/user.entity";
+import { ReportReason } from "../enums/report-reason.enum";
+import { ReportStatus } from "../enums/report-status.enum";
 
 @Entity()
 export class Report {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
-    reason: string;
+    @Column({
+        type: 'enum',
+        enum: ReportReason,
+    })
+    reason: ReportReason;
 
-    @Column()
+    @Column({ type: 'text', nullable: true })
     description: string;
 
     @CreateDateColumn({ name: 'created_at' })
@@ -18,7 +23,21 @@ export class Report {
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
-    @ManyToOne(() => User, (user) => user.reports, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+    @Column({
+        type: 'enum',
+        enum: ReportStatus,
+        default: ReportStatus.PENDING,
+    })
+    status: ReportStatus;
+
+    @Column({ type: 'text', nullable: true })
+    adminNotes: string;
+
+    @ManyToOne(() => User, (user) => user.sentReports, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'reporter_id' })
+    reporter: User;
+
+    @ManyToOne(() => User, (user) => user.receivedReports, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'reported_id' })
+    reported: User;
 }

@@ -73,8 +73,11 @@ export class User {
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 
-  @OneToMany(() => Report, (report) => report.user)
-  reports: Report[];
+  @OneToMany(() => Report, (report) => report.reporter)
+  sentReports: Report[];
+
+  @OneToMany(() => Report, (report) => report.reported)
+  receivedReports: Report[];
 
   @OneToMany(() => Vehicle, (vehicle) => vehicle.user)
   vehicles: Vehicle[];
