@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,11 +11,22 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { MailService } from '../mail/mail.service';
+import { JourneyService } from '../journey/journey.service';
+import { ProposalService } from '../proposal/proposal.service';
+import { BookingService } from '../booking/booking.service';
+import { forwardRef } from '@nestjs/common';
+import { JourneyRequestService } from '../journey-request/journey-request.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly mailService: MailService,
+    @Inject(forwardRef(() => JourneyService)) private readonly journeyService: JourneyService,
+    @Inject(forwardRef(() => JourneyRequestService)) private readonly journeyRequestService: JourneyRequestService,
+    @Inject(forwardRef(() => ProposalService)) private readonly proposalService: ProposalService,
+    @Inject(forwardRef(() => BookingService)) private readonly bookingService: BookingService
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -194,5 +206,34 @@ export class UserService {
     user.isVerifiedUser = isVerifiedUser;
 
     await this.userRepository.save(user);
+  }
+
+  async banUser(id: string, banReason: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isBanned = true;
+    user.banReason = banReason;
+    user.bannedAt = new Date();
+
+    const bannedUser = await this.userRepository.save(user);
+
+    // Cancelar todos los viajes, solicitudes de viajes, reservas y propuestas del usuario
+    await this.journeyService.cancelAllJourneysById(id);
+    await this.journeyRequestService.cancelAllJourneyRequestsById(id);
+    await this.bookingService.cancelAllBookingsById(id);
+    await this.proposalService.cancelAllProposalsById(id);
+
+    await this.mailService.sendUserBannedEmail(
+      bannedUser.email,
+      bannedUser.name,
+      bannedUser.lastname,
+      banReason
+    );
+
+    return bannedUser;
   }
 }

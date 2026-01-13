@@ -28,7 +28,8 @@ export class JourneyService {
     @InjectRepository(Journey) private readonly journeyRepository: Repository<Journey>,
     private readonly vehicleService: VehicleService,
     @Inject(forwardRef(() => BookingService))
-    private readonly bookingService: BookingService
+    private readonly bookingService: BookingService,
+
   ) { }
 
   async createJourney(activeUser: ActiveUserInterface, createJourneyDto: CreateJourneyDto) {
@@ -120,6 +121,34 @@ export class JourneyService {
         reason: 'El conductor ha cancelado el viaje.'
       });
     }
+  }
+
+  async cancelAllJourneysById(userId: string) {
+    const journeys = await this.journeyRepository.find({
+      where: { status: JourneyStatus.PENDING, user: { id: userId } },
+      relations: ['bookings', 'bookings.user']
+    });
+
+    if (journeys.length === 0) return;
+
+    for (const journey of journeys) {
+      journey.status = JourneyStatus.CANCELLED;
+
+      if (journey.bookings && journey.bookings.length > 0) {
+        for (const booking of journey.bookings) {
+          booking.status = BookingStatus.CANCELLED;
+        }
+
+        this.emitEvent({
+          usersId: journey.bookings.map(booking => booking.user.id),
+          journeyId: journey.id,
+          type: 'journey_cancelled',
+          reason: 'El conductor ha sido suspendido.'
+        });
+      }
+    }
+
+    await this.journeyRepository.save(journeys);
   }
 
   async getAllJourneysForFeed() {
@@ -278,8 +307,7 @@ export class JourneyService {
     return bookings.length;
   }
 
-  // Emitir evento de cancelación
-  emitEvent(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled' | 'booking_created', reason: string }) {
+  emitEvent(payload: { usersId: string[], journeyId: string, type: 'journey_cancelled' | 'booking_cancelled' | 'proposal_cancelled' | 'booking_created', reason: string }) {
     this.journeyEvents$.next({
       type: payload.type,
       ...payload

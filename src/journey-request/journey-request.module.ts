@@ -3,11 +3,13 @@ import { JourneyRequestService } from './journey-request.service';
 import { JourneyRequestController } from './journey-request.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JourneyRequest } from './entities/journey-request.entity';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from '../user/user.module';
+import { forwardRef } from '@nestjs/common';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([JourneyRequest]), UserModule],
+  imports: [TypeOrmModule.forFeature([JourneyRequest]), forwardRef(() => UserModule)],
   controllers: [JourneyRequestController],
   providers: [JourneyRequestService],
+  exports: [JourneyRequestService]
 })
 export class JourneyRequestModule { }

@@ -239,4 +239,30 @@ export class ProposalService {
         proposal.status = ProposalStatus.CANCELLED;
         return await this.proposalRepository.save(proposal);
     }
+
+    async cancelAllProposalsById(userId: string) {
+        const proposals = await this.proposalRepository.find({
+            where: {
+                journeyRequest: { user: { id: userId } },
+                status: ProposalStatus.SENT
+            },
+            relations: ['journeyRequest', 'journeyRequest.user']
+        });
+
+        if (!proposals) return;
+
+        for (const proposal of proposals) {
+            proposal.status = ProposalStatus.CANCELLED;
+
+            this.journeyService.emitEvent({
+                usersId: [proposal.journeyRequest.user.id],
+                journeyId: proposal.journeyRequest.id,
+                type: 'proposal_cancelled',
+                reason: `El pasajero ${proposal.journeyRequest.user.name} ${proposal.journeyRequest.user.lastname} ha cancelado su propuesta.`
+            })
+        }
+
+        await this.proposalRepository.save(proposals);
+
+    }
 }

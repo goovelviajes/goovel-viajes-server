@@ -54,7 +54,11 @@ export class ReportService {
         const savedReport = await this.reportRepository.save(report);
 
         // Verificar si el usuario ha superado el umbral de reportes para informar al administrador
-        await this.checkUserReportThreshold(reportedUser);
+        try {
+            await this.checkUserReportThreshold(reportedUser);
+        } catch (error) {
+            console.error('Error checking user report threshold:', error);
+        }
 
         return {
             ...savedReport,
@@ -134,10 +138,21 @@ export class ReportService {
         report.status = updateDto.status;
         report.adminNotes = updateDto.adminNotes;
 
-        const updatedReport = await this.reportRepository.save(report);
+        await this.reportRepository.save(report);
 
-        // 4. Lógica secundaria: Notificar al reportero
+        // 4. Lógica secundaria: Notificar al reportero y bloquear al reportado si es necesario
         if (updateDto.status === ReportStatus.RESOLVED) {
+            const resolvedCount = await this.reportRepository.count({
+                where: {
+                    reported: { id: report.reported.id },
+                    status: ReportStatus.RESOLVED
+                }
+            });
+
+            if (resolvedCount >= 5) {
+                await this.userService.banUser(report.reported.id, 'Banned for multiple reports');
+            }
+
             try {
                 await this.mailService.sendReportResolvedEmail(
                     report.reporter.email,

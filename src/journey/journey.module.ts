@@ -8,7 +8,7 @@ import { JourneyService } from './journey.service';
 import { BookingModule } from 'src/booking/booking.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Journey]), UserModule, VehicleModule, forwardRef(() => BookingModule)],
+  imports: [TypeOrmModule.forFeature([Journey]), forwardRef(() => UserModule), VehicleModule, forwardRef(() => BookingModule)],
   controllers: [JourneyController],
   providers: [JourneyService],
   exports: [JourneyService]

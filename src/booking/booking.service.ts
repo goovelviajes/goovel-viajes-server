@@ -16,6 +16,7 @@ export class BookingService {
         @InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>,
         @Inject(forwardRef(() => JourneyService))
         private readonly journeyService: JourneyService,
+        @Inject(forwardRef(() => UserService))
         private readonly userService: UserService
     ) { }
 
@@ -176,5 +177,34 @@ export class BookingService {
             type: 'booking_cancelled',
             reason: `El pasajero ${booking.user.name} ${booking.user.lastname} ha cancelado su reserva.`
         })
+    }
+
+    async cancelAllBookingsById(userId: string) {
+        const bookings = await this.bookingRepository.find({
+            where: {
+                user: { id: userId },
+                status: BookingStatus.PENDING
+            }
+        })
+
+        if (!bookings) return;
+
+        const updatedBookings = bookings.map((booking) => {
+            return {
+                ...booking,
+                status: BookingStatus.CANCELLED
+            }
+        })
+
+        for (const booking of bookings) {
+            this.journeyService.emitEvent({
+                usersId: [booking.journey.user.id],
+                journeyId: booking.journey.id,
+                type: 'booking_cancelled',
+                reason: `El pasajero ${booking.user.name} ${booking.user.lastname} ha cancelado su reserva.`
+            })
+        }
+
+        await this.bookingRepository.save(updatedBookings)
     }
 }

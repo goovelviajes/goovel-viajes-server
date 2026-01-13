@@ -6,6 +6,14 @@ import { User } from 'src/user/entities/user.entity';
 export class MailService {
     constructor(private readonly mailerService: MailerService) { }
 
+    // MÉTODO DE APOYO: Esto garantiza que Mailtrap no reciba 
+    // correos más rápido de lo que permite su plan gratuito.
+    private async sleep() {
+        if (process.env.NODE_ENV === 'development') {
+            return new Promise(resolve => setTimeout(resolve, 10000));
+        }
+    }
+
     async sendResetPasswordMail(email: string, resetToken: string): Promise<void> {
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
@@ -19,6 +27,7 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de recuperación:', error);
             throw new InternalServerErrorException('Error while sending reset password email');
@@ -38,6 +47,7 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de confirmación:', error);
             throw new InternalServerErrorException('Error while sending confirmation email');
@@ -61,6 +71,7 @@ export class MailService {
                     adminUrl: process.env.FRONTEND_URL + '/admin/reports',
                 },
             });
+            await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de reporte:', error);
             throw new InternalServerErrorException('Error while sending report threshold email');
@@ -80,8 +91,28 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            await this.sleep();
         } catch (error) {
             console.error('Error al enviar el email de resolución:', error);
+        }
+    }
+
+    async sendUserBannedEmail(email: string, name: string, lastname: string, reason: string) {
+        try {
+            await this.mailerService.sendMail({
+                to: email,
+                subject: '🚫 Aviso Importante: Tu cuenta de Goovel ha sido suspendida',
+                template: './user-banned',
+                context: {
+                    year: new Date().getFullYear(),
+                    name,
+                    lastname,
+                    reason,
+                },
+            });
+            await this.sleep();
+        } catch (error) {
+            console.error('Error al enviar el correo de confirmación:', error);
         }
     }
 }

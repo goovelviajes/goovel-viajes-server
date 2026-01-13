@@ -96,4 +96,21 @@ export class JourneyRequestService {
             throw new InternalServerErrorException("Error cancelling request")
         }
     }
+
+    async cancelAllJourneyRequestsById(userId: string) {
+        const requests = await this.requestRepository.find({
+            where: {
+                user: { id: userId },
+                status: In([RequestStatus.PENDING, RequestStatus.OFFERED])
+            }
+        })
+
+        if (!requests) throw new NotFoundException("Requests not found")
+
+        for (const request of requests) {
+            request.status = RequestStatus.CANCELLED
+        }
+
+        await this.requestRepository.save(requests)
+    }
 }
