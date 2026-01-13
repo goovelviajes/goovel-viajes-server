@@ -88,4 +88,8 @@ export class RatingService {
 
         return averageRating;
     }
+
+    async getRatingsByUser(ratedUserId: string) {
+        return this.ratingRepository.find({ where: { ratedUser: { id: ratedUserId } } });
+    }
 }
