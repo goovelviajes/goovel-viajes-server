@@ -245,12 +245,27 @@ export class JourneyService {
       .leftJoin('journey.user', 'driver')
       .leftJoin('bookings.user', 'user')
       .leftJoin('user.profile', 'profile')
+      .leftJoin('driver.profile', 'driverProfile')
       .select([
         'journey',
-        'bookings.id', 'bookings.seatCount', 'bookings.status', 'bookings.createdAt',
-        'driver.id', 'driver.name', 'driver.lastname', 'driver.email',
-        'user.id', 'user.name', 'user.lastname', 'user.email',
-        'profile.id', 'profile.image'
+        'bookings.id',
+        'bookings.seatCount',
+        'bookings.status',
+        'bookings.createdAt',
+        'driver.id',
+        'driver.name',
+        'driver.lastname',
+        'driver.email',
+        'driverProfile.id',
+        'driverProfile.profileName',
+        'driverProfile.image',
+        'user.id',
+        'user.name',
+        'user.lastname',
+        'user.email',
+        'profile.id',
+        'profile.image',
+        'profile.profileName'
       ])
       .where('journey.id = :id', { id })
       .getOne();

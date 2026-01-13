@@ -13,15 +13,17 @@ import { ProfileService } from '../profile/profile.service';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendConfirmationMailDto } from './dto/send-confirmation-mail';
 import { Logger } from '@nestjs/common';
-import { TooManyRequestsException } from 'src/common/exceptions/too-many-request.exception';
-import { RolesEnum } from 'src/common/enums/roles.enum';
+import { TooManyRequestsException } from '../common/exceptions/too-many-request.exception';
+import { RolesEnum } from '../common/enums/roles.enum';
+import { RatingService } from '../rating/rating.service';
+import { JourneyService } from '../journey/journey.service';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +35,9 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly profileService: ProfileService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly ratingService: RatingService,
+    private readonly journeyService: JourneyService
   ) {
     this.logger = new Logger(AuthService.name);
   }
@@ -145,7 +149,24 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    return user;
+    // Calcular rating promedio
+    const averageRating = await this.ratingService.getAverageRating(id);
+
+    // Contar total de calificaciones
+    const ratings = await this.ratingService.getRatingsByUser(id);
+    const totalRatings = ratings.length;
+
+    // Estadísticas de viajes completados
+    const countCompletedByDriver = await this.journeyService.countCompletedByDriver(id);
+    const countCompletedByPassenger = await this.journeyService.countCompletedByPassenger(id);
+
+    return {
+      ...user,
+      averageRating,
+      totalRatings,
+      countCompletedByDriver,
+      countCompletedByPassenger
+    };
   }
 
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
