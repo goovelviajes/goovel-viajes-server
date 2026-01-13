@@ -7,7 +7,7 @@ import { UserModule } from '../user/user.module';
 import { JourneyModule } from '../journey/journey.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking]), UserModule, forwardRef(() => JourneyModule)],
+  imports: [TypeOrmModule.forFeature([Booking]), forwardRef(() => UserModule), forwardRef(() => JourneyModule)],
   controllers: [BookingController],
   providers: [BookingService],
   exports: [BookingService]

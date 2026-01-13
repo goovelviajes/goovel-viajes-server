@@ -67,6 +67,15 @@ export class User {
   @Column({ default: false })
   isVerifiedUser: boolean;
 
+  @Column({ default: false })
+  isBanned: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  banReason: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  bannedAt: Date | null;
+
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
 
