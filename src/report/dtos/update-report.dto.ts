@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString, MinLength } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { ReportStatus } from "../enums/report-status.enum";
 
 export class UpdateReportDto {
@@ -10,4 +10,7 @@ export class UpdateReportDto {
     @MinLength(10, { message: 'Admin note must be at least 10 characters long' })
     adminNotes: string;
 
+    @IsOptional()
+    @IsBoolean()
+    banImmediately?: boolean;
 }
