@@ -19,39 +19,18 @@ import { RatingModule } from './rating/rating.module';
 import { ReportModule } from './report/report.module';
 import { UserModule } from './user/user.module';
 import { VehicleModule } from './vehicle/vehicle.module';
-
+import { dataSourceOptions } from './data-source';
 
 @Module({
   imports: [
-    // Para verificar en que enviroment se esta ejecutando la app.
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
 
-    // Conexion con la DB.
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          type: 'mysql',
-          host: config.get<string>('DB_HOST'),
-          port: config.get<number>('DB_PORT'),
-          username: config.get<string>('DB_USERNAME'),
-          password: config.get<string>('DB_PASSWORD'),
-          database: config.get<string>('DB_NAME'),
-
-          ssl: config.get<string>('SSL_ENABLED') === 'true'
-            ? { rejectUnauthorized: false }
-            : false,
-
-          synchronize: config.get<string>('NODE_ENV') === 'development',
-          autoLoadEntities: true,
-          entities: [join(__dirname, '/**/*.entity{.ts,.js}')],
-          logging: config.get<string>('NODE_ENV') === 'development' ? 'all' : ['error'],
-        };
-      },
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      autoLoadEntities: true,
     }),
 
     EventEmitterModule.forRoot(),

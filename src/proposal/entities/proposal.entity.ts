@@ -13,7 +13,7 @@ export class Proposal {
     @Column({ type: 'enum', enum: ProposalStatus, default: ProposalStatus.SENT })
     status: ProposalStatus;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
     @Column('decimal', { precision: 10, scale: 2 })

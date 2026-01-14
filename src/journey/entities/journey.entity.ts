@@ -13,13 +13,13 @@ export class Journey {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'json' })
+    @Column({ type: 'jsonb' })
     origin: { name: string; lat: number; lng: number };
 
-    @Column({ type: 'json' })
+    @Column({ type: 'jsonb' })
     destination: { name: string; lat: number; lng: number };
 
-    @Column({ name: 'departure_time', type: 'timestamp' })
+    @Column({ name: 'departure_time', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
     departureTime: Date;
 
     @Column({ name: 'available_seats', nullable: true })

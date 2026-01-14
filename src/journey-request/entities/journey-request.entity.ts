@@ -9,13 +9,17 @@ export class JourneyRequest {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'json' })
+    @Column({ type: 'jsonb' })
     origin: { name: string; lat: number; lng: number };
 
-    @Column({ type: 'json' })
+    @Column({ type: 'jsonb' })
     destination: { name: string; lat: number; lng: number };
 
-    @Column({ name: 'requested_time', type: 'datetime' })
+    @Column({
+        name: 'requested_time',
+        type: 'timestamptz',
+        default: () => 'CURRENT_TIMESTAMP'
+    })
     requestedTime: Date;
 
     @Column({ name: 'requested_seats', type: 'int', default: 1, nullable: true })

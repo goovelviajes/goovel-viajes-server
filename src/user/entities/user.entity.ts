@@ -61,7 +61,7 @@ export class User {
   @Column({ default: 0 })
   failedAttempts: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   lockedUntil: Date | null;
 
   @Column({ default: false })
@@ -73,7 +73,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   banReason: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   bannedAt: Date | null;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
