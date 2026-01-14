@@ -9,6 +9,7 @@ import { CreateBookingDto } from './dtos/create-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { BookingStatus } from './enums/booking-status.enum';
 import { UserService } from '../user/user.service';
+import { verifyTimePassed } from 'src/common/utils/verify-time-passed';
 
 @Injectable()
 export class BookingService {
@@ -39,17 +40,13 @@ export class BookingService {
 
         const journey = await this.journeyService.getById(createBookingDto.journeyId);
 
-        if (journey.user.id === activeUser.id) {
-            throw new BadRequestException("You can't book your own journey")
-        }
+        if (journey.user.id === activeUser.id)
+            throw new BadRequestException("You can't book your own journey");
 
-        const departureTime = new Date(journey.departureTime);
-        const now = new Date();
-
-        // Validamos que la fecha de partida no sea menor a la fecha actual
-        if (departureTime < now) {
-            throw new BadRequestException("Journey departure time is in the past")
-        }
+        // Validamos que la fecha de salida no sea menor a la fecha actual
+        const isTimePassed = verifyTimePassed(journey.departureTime);
+        if (isTimePassed)
+            throw new BadRequestException("Journey departure time is in the past");
 
         switch (journey.status) {
             case JourneyStatus.CANCELLED:
