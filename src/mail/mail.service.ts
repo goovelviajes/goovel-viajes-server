@@ -30,7 +30,6 @@ export class MailService {
             await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de recuperación:', error);
-            throw new InternalServerErrorException('Error while sending reset password email');
         }
     }
 
@@ -50,7 +49,6 @@ export class MailService {
             await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de confirmación:', error);
-            throw new InternalServerErrorException('Error while sending confirmation email');
         }
     }
 
@@ -74,7 +72,6 @@ export class MailService {
             await this.sleep();
         } catch (error) {
             console.error('Error al enviar el correo de reporte:', error);
-            throw new InternalServerErrorException('Error while sending report threshold email');
         }
     }
 

@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { BookingStatus } from 'src/booking/enums/booking-status.enum';
-import { Repository } from 'typeorm';
+import { MoreThan, Not, Repository } from 'typeorm';
 import { BookingService } from '../booking/booking.service';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { VehicleService } from '../vehicle/vehicle.service';
@@ -19,6 +19,7 @@ import { CreateJourneyDto } from './dtos/create-journey.dto';
 import { Journey } from './entities/journey.entity';
 import { JourneyStatus } from './enums/journey-status.enum';
 import { JourneyType } from './enums/journey-type.enum';
+import { verifyTimePassed } from 'src/common/utils/verify-time-passed';
 
 @Injectable()
 export class JourneyService {
@@ -151,9 +152,15 @@ export class JourneyService {
     await this.journeyRepository.save(journeys);
   }
 
-  async getAllJourneysForFeed() {
+  async getAllJourneysForFeed(activeUserId: string) {
+    const now = new Date();
+
     const journeys = await this.journeyRepository.find({
-      where: { status: JourneyStatus.PENDING },
+      where: {
+        status: JourneyStatus.PENDING,
+        user: { id: Not(activeUserId) },
+        departureTime: MoreThan(now)
+      },
       relations: ['user', 'user.profile', 'vehicle', 'bookings', 'bookings.user'],
       select: {
         user: {
@@ -292,10 +299,9 @@ export class JourneyService {
     if (journey.user.id !== activeUserId) throw new ForbiddenException("User must be journey owner");
 
     // Verificamos que la fecha de salida sea mayor a la fecha actual
-    const departureTime = new Date(journey.departureTime);
-    const now = new Date();
+    const isTimePassed = verifyTimePassed(journey.departureTime);
 
-    if (departureTime < now) throw new BadRequestException("Journey cannot be marked as completed");
+    if (isTimePassed) throw new BadRequestException("Journey cannot be marked as completed");
 
     // Marcamos las reservas como completadas
     await this.bookingService.markBookingsAsCompleted(journey.bookings);

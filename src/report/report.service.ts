@@ -27,10 +27,6 @@ export class ReportService {
 
         const reportedUser = await this.userService.getUserById(reportedId);
 
-        if (!reportedUser) {
-            throw new NotFoundException('User not found');
-        }
-
         // Verificar si el usuario ya tiene un reporte pendiente
         const alreadyHasPending = await this.reportRepository.findOne({
             where: {
@@ -142,15 +138,24 @@ export class ReportService {
 
         // 4. Lógica secundaria: Notificar al reportero y bloquear al reportado si es necesario
         if (updateDto.status === ReportStatus.RESOLVED) {
-            const resolvedCount = await this.reportRepository.count({
-                where: {
-                    reported: { id: report.reported.id },
-                    status: ReportStatus.RESOLVED
-                }
-            });
 
-            if (resolvedCount >= 5) {
-                await this.userService.banUser(report.reported.id, 'Banned for multiple reports');
+            // Si tiene el flag de banImmediately, se banea al usuario de manera inmediata
+            if (updateDto.banImmediately) {
+                await this.userService.banUser(
+                    report.reported.id,
+                    `Banned by admin`
+                );
+            } else {
+                const resolvedCount = await this.reportRepository.count({
+                    where: {
+                        reported: { id: report.reported.id },
+                        status: ReportStatus.RESOLVED
+                    }
+                });
+
+                if (resolvedCount >= 5) {
+                    await this.userService.banUser(report.reported.id, 'Banned for multiple reports');
+                }
             }
 
             try {
