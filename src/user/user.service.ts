@@ -57,21 +57,35 @@ export class UserService {
   }
 
   async getUserById(id: string) {
-    try {
-      const user = await this.userRepository.findOne({ where: { id }, withDeleted: true });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      withDeleted: true,
+      select: [
+        'id',
+        'name',
+        'lastname',
+        'email',
+        'birthdate',
+        'password',
+        'createdAt',
+        'updatedAt',
+        'deletedAt',
+        'isEmailConfirmed',
+        'role',
+        'failedAttempts',
+        'lockedUntil',
+        'isVerifiedUser',
+        'isBanned',
+        'banReason',
+        'bannedAt'
+      ]
+    });
 
-
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      return user;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error trying to get user by id');
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    return user;
   }
 
   async getUserByIdWithoutPassword(id: string) {
