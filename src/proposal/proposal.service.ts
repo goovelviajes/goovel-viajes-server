@@ -196,15 +196,34 @@ export class ProposalService {
 
     async getPendingProposals(userId: string) {
         return await this.proposalRepository.find({
-            where: { journeyRequest: { user: { id: userId } }, status: ProposalStatus.SENT },
-            relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user']
+            where: [
+                {
+                    journeyRequest: { user: { id: userId } },
+                    status: ProposalStatus.SENT
+                },
+                {
+                    driver: { id: userId },
+                    status: ProposalStatus.SENT
+                }
+            ],
+            relations: ['journeyRequest', 'vehicle', 'driver', 'driver.profile', 'journeyRequest.user']
         });
     }
 
     async getRejectedAndCancelledProposals(userId: string) {
         return await this.proposalRepository.find({
-            where: { journeyRequest: { user: { id: userId } }, status: In([ProposalStatus.REJECTED, ProposalStatus.CANCELLED]) },
-            relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user']
+            where:
+                [
+                    {
+                        journeyRequest: { user: { id: userId } },
+                        status: In([ProposalStatus.REJECTED, ProposalStatus.CANCELLED])
+                    },
+                    {
+                        driver: { id: userId },
+                        status: In([ProposalStatus.REJECTED, ProposalStatus.CANCELLED])
+                    }
+                ],
+            relations: ['journeyRequest', 'vehicle', 'driver', 'driver.profile', 'journeyRequest.user']
         })
     }
 

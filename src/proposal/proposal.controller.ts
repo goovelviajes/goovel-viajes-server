@@ -55,7 +55,7 @@ export class ProposalController {
     return this.proposalService.rejectProposal(passengerId, proposalId);
   }
 
-  @ApiOperation({ summary: 'Obtener propuestas pendientes' })
+  @ApiOperation({ summary: 'Obtener propuestas pendientes (pasajero y conductor)' })
   @ApiOkResponse({ description: 'Pending proposals list', type: [ProposalsOkResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
   @ApiBearerAuth('access-token')
@@ -64,7 +64,7 @@ export class ProposalController {
     return this.proposalService.getPendingProposals(userId);
   }
 
-  @ApiOperation({ summary: 'Obtener propuestas rechazadas y canceladas' })
+  @ApiOperation({ summary: 'Obtener propuestas rechazadas y canceladas (pasajero y conductor)' })
   @ApiOkResponse({ description: 'Rejected and cancelled proposals list', type: [ProposalsOkResponseDto] })
   @ApiInternalServerErrorResponse({ description: 'Unexpected error while getting proposals' })
   @ApiBearerAuth('access-token')
