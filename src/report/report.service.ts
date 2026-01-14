@@ -27,10 +27,6 @@ export class ReportService {
 
         const reportedUser = await this.userService.getUserById(reportedId);
 
-        if (!reportedUser) {
-            throw new NotFoundException('User not found');
-        }
-
         // Verificar si el usuario ya tiene un reporte pendiente
         const alreadyHasPending = await this.reportRepository.findOne({
             where: {
