@@ -43,11 +43,13 @@ export class JourneyController {
     return this.journeyService.createJourney(activeUser, createJourneyDto);
   }
 
+  @UseGuards(TokenGuard)
   @ApiOperation({ summary: 'Obtener viajes para el feed público con disponibilidad real' })
   @ApiOkResponse({ type: [JourneyOkResponseDto] })
+  @ApiBearerAuth('access-token')
   @Get('feed')
-  getAllJourneysForFeed() {
-    return this.journeyService.getAllJourneysForFeed();
+  getAllJourneysForFeed(@ActiveUser() { id }: ActiveUserInterface) {
+    return this.journeyService.getAllJourneysForFeed(id);
   }
 
   @ApiOperation({ summary: 'Obtener mis viajes con filtros opcionales' })

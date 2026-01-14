@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { BookingStatus } from 'src/booking/enums/booking-status.enum';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { BookingService } from '../booking/booking.service';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
 import { VehicleService } from '../vehicle/vehicle.service';
@@ -151,9 +151,9 @@ export class JourneyService {
     await this.journeyRepository.save(journeys);
   }
 
-  async getAllJourneysForFeed() {
+  async getAllJourneysForFeed(activeUserId: string) {
     const journeys = await this.journeyRepository.find({
-      where: { status: JourneyStatus.PENDING },
+      where: { status: JourneyStatus.PENDING, user: { id: Not(activeUserId) } },
       relations: ['user', 'user.profile', 'vehicle', 'bookings', 'bookings.user'],
       select: {
         user: {
