@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LocationDto } from 'src/common/dtos/location.dto';
 import { ActiveUserInterface } from 'src/common/interface/active-user.interface';
@@ -8,33 +8,31 @@ import { CreateRequestDto } from './dtos/create-request.dto';
 import { JourneyRequest } from './entities/journey-request.entity';
 import { RequestStatus } from './enums/request-status.enum';
 import { JourneyType } from 'src/journey/enums/journey-type.enum';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class JourneyRequestService {
-    constructor(@InjectRepository(JourneyRequest) private readonly requestRepository: Repository<JourneyRequest>) { }
+    constructor(
+        @InjectRepository(JourneyRequest) private readonly requestRepository: Repository<JourneyRequest>,
+        @Inject(forwardRef(() => UserService))
+        private readonly userService: UserService
+    ) { }
 
-    async createRequest(user: ActiveUserInterface, requestDto: CreateRequestDto) {
-        try {
-            this.validateFieldsByType(requestDto)
+    async createRequest({ id }: ActiveUserInterface, requestDto: CreateRequestDto) {
+        this.validateFieldsByType(requestDto)
 
-            const newRequest = this.requestRepository.create({
-                ...requestDto,
-                user
-            })
+        const newRequest = this.requestRepository.create({
+            ...requestDto,
+            user: { id }
+        })
 
-            const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime, user.id)
+        const isRequestRepeated = !!await this.findRepeatedRequests(requestDto.origin, requestDto.destination, requestDto.requestedTime, id)
 
-            if (isRequestRepeated) {
-                throw new ConflictException("Request cannot be repeated")
-            }
-
-            return this.requestRepository.save(newRequest)
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            throw new InternalServerErrorException("Error creating request")
+        if (isRequestRepeated) {
+            throw new ConflictException("Request cannot be repeated")
         }
+
+        return this.requestRepository.save(newRequest)
     }
 
     // Valida los campos especificos segun el tipo de viaje (CARPOOL o PACKAGE)
@@ -60,13 +58,14 @@ export class JourneyRequestService {
 
             return await this.requestRepository
                 .createQueryBuilder('journey_request')
-                .where("JSON_EXTRACT(journey_request.origin, '$.name') = :originName", { originName: origin.name })
-                .andWhere("JSON_EXTRACT(journey_request.destination, '$.name') = :destinationName", { destinationName: destination.name })
+                .where("journey_request.origin->>'name' = :originName", { originName: origin.name })
+                .andWhere("journey_request.destination->>'name' = :destinationName", { destinationName: destination.name })
                 .andWhere("journey_request.requested_time = :requestedTime", { requestedTime })
-                .andWhere("journey_request.user = :userId", { userId })
+                .andWhere("journey_request.userId = :userId", { userId })
                 .getOne();
         } catch (error) {
-            throw new InternalServerErrorException("Error finding repeated requests")
+            console.error(error);
+            throw new InternalServerErrorException("Error finding repeated requests");
         }
     }
 

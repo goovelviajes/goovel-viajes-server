@@ -77,7 +77,8 @@ export class UserService {
         'isVerifiedUser',
         'isBanned',
         'banReason',
-        'bannedAt'
+        'bannedAt',
+        'resetToken'
       ]
     });
 

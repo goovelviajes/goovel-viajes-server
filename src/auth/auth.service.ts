@@ -173,8 +173,10 @@ export class AuthService {
     try {
       const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
 
+
       const user = await this.userService.getUserById(id);
 
+      console.log(user)
       const isValidPassword = await bcrypt.compare(oldPassword, user.password);
 
       if (!isValidPassword)
@@ -194,6 +196,7 @@ export class AuthService {
         message: 'Password changed successfully',
       };
     } catch (error) {
+      console.error(error)
       if (error instanceof HttpException) {
         throw error;
       }
@@ -238,6 +241,9 @@ export class AuthService {
       });
 
       const user = await this.userService.getUserById(payload.sub);
+
+      console.log(user)
+      console.log(token)
 
       if (!user || user.resetToken !== token) {
         throw new UnauthorizedException('Token already used or invalid');
