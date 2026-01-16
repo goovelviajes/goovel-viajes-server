@@ -170,38 +170,27 @@ export class AuthService {
   }
 
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
-    try {
-      const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
+    const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
 
+    const user = await this.userService.getUserById(id);
 
-      const user = await this.userService.getUserById(id);
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!isValidPassword)
+      throw new UnauthorizedException('Invalid credentials');
 
-      console.log(user)
-      const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-      if (!isValidPassword)
-        throw new UnauthorizedException('Invalid credentials');
+    if (newPassword !== confirmPassword)
+      throw new UnauthorizedException('Passwords do not match');
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashedPassword;
 
-      if (newPassword !== confirmPassword)
-        throw new UnauthorizedException('Passwords do not match');
+    await this.userService.update(user.id, user);
 
-      user.password = hashedPassword;
-
-      await this.userService.update(user.id, user);
-
-      return {
-        message: 'Password changed successfully',
-      };
-    } catch (error) {
-      console.error(error)
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error changing password');
-    }
+    return {
+      message: 'Password changed successfully',
+    };
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
