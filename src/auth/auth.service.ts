@@ -231,9 +231,6 @@ export class AuthService {
 
       const user = await this.userService.getUserById(payload.sub);
 
-      console.log(user)
-      console.log(token)
-
       if (!user || user.resetToken !== token) {
         throw new UnauthorizedException('Token already used or invalid');
       }
