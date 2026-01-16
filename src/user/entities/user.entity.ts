@@ -19,6 +19,7 @@ import { Profile } from '../../profile/entities/profile.entity';
 import { Rating } from '../../rating/entities/rating.entity';
 import { Report } from '../../report/entities/report.entity';
 import { Vehicle } from '../../vehicle/entities/vehicle.entity';
+import { TermsAcceptance } from 'src/terms/entities/terms-acceptance.entity';
 
 @Entity()
 export class User {
@@ -114,4 +115,7 @@ export class User {
 
   @OneToMany(() => Proposal, (proposal) => proposal.driver)
   proposals: Proposal[];
+
+  @OneToMany(() => TermsAcceptance, (termsAcceptance) => termsAcceptance.user)
+  termsAcceptances: TermsAcceptance[];
 }
