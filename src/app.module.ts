@@ -22,6 +22,8 @@ import { ReportModule } from './report/report.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { VehicleModule } from './vehicle/vehicle.module';
+import { TermsModule } from './terms/terms.module';
+import { TermsGuard } from './auth/guard/terms.guard';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
     JourneyRequestModule,
     ProposalModule,
     MailModule,
+    TermsModule,
   ],
   controllers: [],
   providers: [
@@ -67,7 +70,11 @@ import { VehicleModule } from './vehicle/vehicle.module';
     {
       provide: APP_GUARD,
       useClass: UserExistsGuard
-    }
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TermsGuard,
+    },
   ],
 })
 export class AppModule { }
