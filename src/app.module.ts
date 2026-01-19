@@ -24,6 +24,7 @@ import { UserModule } from './user/user.module';
 import { VehicleModule } from './vehicle/vehicle.module';
 import { TermsModule } from './terms/terms.module';
 import { TermsGuard } from './auth/guard/terms.guard';
+import { BanGuard } from './auth/guard/ban.guard';
 
 @Module({
   imports: [
@@ -61,20 +62,24 @@ import { TermsGuard } from './auth/guard/terms.guard';
     MailService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard
+      useClass: ThrottlerGuard // 1. ¿Viene muy rápido?
     },
     {
       provide: APP_GUARD,
-      useClass: TokenGuard
+      useClass: TokenGuard // 2. ¿Quién es?
     },
     {
       provide: APP_GUARD,
-      useClass: UserExistsGuard
+      useClass: UserExistsGuard // 3. ¿Todavía existe?
     },
     {
       provide: APP_GUARD,
-      useClass: TermsGuard,
+      useClass: BanGuard // 4. ¿Tiene permiso de acceso (no baneado)?
     },
+    {
+      provide: APP_GUARD,
+      useClass: TermsGuard // 5. ¿Aceptó los términos?
+    }
   ],
 })
 export class AppModule { }
