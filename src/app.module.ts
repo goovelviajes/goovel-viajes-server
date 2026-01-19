@@ -25,6 +25,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
 import { TermsModule } from './terms/terms.module';
 import { TermsGuard } from './auth/guard/terms.guard';
 import { BanGuard } from './auth/guard/ban.guard';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -57,7 +58,9 @@ import { BanGuard } from './auth/guard/ban.guard';
     MailModule,
     TermsModule,
   ],
-  controllers: [],
+  controllers: [
+    AppController
+  ],
   providers: [
     MailService,
     {
