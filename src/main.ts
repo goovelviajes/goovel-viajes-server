@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
@@ -6,47 +6,55 @@ import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { AppModule } from './app.module';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
+    // Configuración de Logs Optimizada
     logger: WinstonModule.createLogger({
       transports: [
-        // 1. Consola: Para ver los logs mientras desarrollas (con colores)
+        // Consola: Legible para humanos
         new winston.transports.Console({
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.colorize(),
             winston.format.printf(({ timestamp, level, message, context }) => {
-              return `[${timestamp}] ${level}: [${context}] ${message}`;
+              return `[${timestamp}] ${level}: [${context || 'App'}] ${message}`;
             }),
           ),
         }),
-
-        // 2. Archivo para errores: Solo guarda errores críticos
+        // Archivos: Formato JSON para análisis profesional
         new winston.transports.DailyRotateFile({
           filename: 'logs/error-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
-          level: 'error', // Solo nivel 'error' hacia abajo
-          maxFiles: '30d', // Conservar por 30 días
+          level: 'error',
+          maxFiles: '30d',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json(),
+          ),
         }),
-
-        // 3. Archivo combinado: Todo lo que pase en la app
         new winston.transports.DailyRotateFile({
           filename: 'logs/combined-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
           maxFiles: '14d',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json(),
+          ),
         }),
       ],
-      level: 'info'
     })
   });
 
+  // CORS Protegido
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || '*',
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   });
 
+  // Pipes Globales
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -55,30 +63,39 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Goovel API')
-    .setDescription('Acá se mostrarán los endpoints necesarios para toda la aplicacion')
-    .setVersion('1.0')
-    .addTag('Template')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'Authorization',
-        in: 'header',
-      },
-      'access-token', // nombre del esquema
-    )
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  // Swagger (Opcional: puedes desactivarlo en producción para más seguridad)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Goovel API')
+      .setDescription('Documentación de endpoints de Goovel')
+      .setVersion('1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', in: 'header' },
+        'access-token',
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  // Interceptores Globales
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(reflector),
+    new LoggingInterceptor(),
+  );
 
-  // Configuración para que el throttle funcione
-  (app.getHttpAdapter().getInstance() as any).set('trust proxy', 'loopback');
+  // Confianza en el Proxy (Vital para obtener IPs reales en la nube)
+  const httpAdapter = app.getHttpAdapter();
+  if (typeof httpAdapter.getInstance === 'function') {
+    httpAdapter.getInstance().set('trust proxy', 1);
+  }
 
-  await app.listen(process.env.PORT || 3050);
+  const port = process.env.PORT || 3050;
+  await app.listen(port);
+
+  // Log de inicio para saber que todo arrancó bien
+  const logger = new Logger('Bootstrap');
+  logger.log(`Goovel API is running on: http://localhost:${port}/api`);
 }
 bootstrap();
