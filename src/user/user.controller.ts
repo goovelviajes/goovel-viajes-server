@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   HttpCode,
+  Param,
+  ParseUUIDPipe,
   Patch,
   UseGuards
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiInternalServerErrorResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { TokenGuard } from '../auth/guard/token.guard';
 import { ActiveUser } from '../common/decorator/active-user.decorator';
 import { ActiveUserInterface } from '../common/interface/active-user.interface';
@@ -15,6 +17,7 @@ import { UserService } from './user.service';
 import { GrantVerificationDto } from './dto/grant-verification.dto';
 import { RoleGuard } from '../auth/guard/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UnbanUserResponseDto } from './dto/unban-user-response.dto';
 
 @Controller('user')
 export class UserController {
@@ -69,5 +72,17 @@ export class UserController {
   @HttpCode(204)
   revokeVerification(@Body() { email }: GrantVerificationDto) {
     return this.userService.grantVerification(email, false);
+  }
+
+  @Patch('unban/:userId')
+  @UseGuards(RoleGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Quitar ban a un usuario' })
+  @ApiOkResponse({ description: 'User unbanned', type: UnbanUserResponseDto })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiInternalServerErrorResponse({ description: 'Error unbanning user' })
+  @ApiBearerAuth('access-token')
+  unbanUser(@Param('userId', ParseUUIDPipe) id: string) {
+    return this.userService.unbanUser(id);
   }
 }

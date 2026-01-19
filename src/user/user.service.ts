@@ -251,4 +251,26 @@ export class UserService {
 
     return bannedUser;
   }
+
+  async unbanUser(id: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isBanned = false;
+    user.banReason = null;
+    user.bannedAt = null;
+
+    await this.userRepository.save(user);
+
+    return {
+      id: user.id,
+      isBanned: user.isBanned,
+      banReason: user.banReason,
+      bannedAt: user.bannedAt,
+      message: 'User unbanned successfully'
+    };
+  }
 }
