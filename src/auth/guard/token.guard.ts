@@ -4,6 +4,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -13,6 +14,8 @@ import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class TokenGuard implements CanActivate {
+  private readonly logger: Logger = new Logger(TokenGuard.name);
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
@@ -26,17 +29,21 @@ export class TokenGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-
     const token = this.getTokenFromHeaders(request);
+    const path = request.url;
+    const method = request.method;
+    const ip = request.ip;
 
     if (!token) {
+      this.logger.warn(`[AUTH_FAILED] - No Token - Path: ${method} ${path} - IP: ${ip}`);
       throw new UnauthorizedException('You need a token to get access');
     }
 
     const secretKey = process.env.SECRET_KEY;
 
     if (!secretKey) {
-      throw new UnauthorizedException('Secret key required');
+      this.logger.error(`[CRITICAL_CONFIG] - Secret key missing in environment variables`);
+      throw new InternalServerErrorException('Secret key required');
     }
 
     try {
@@ -51,18 +58,24 @@ export class TokenGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      const logDetails = `Path: ${method} ${path} - IP: ${ip} - Message: ${error.message}`;
+
       if (error instanceof HttpException) {
+        this.logger.warn(`[AUTH_HTTP_EXCEPTION] - Status: ${error.getStatus()} - ${logDetails}`);
         throw error;
       }
 
-      if (error.name === 'JsonWebTokenError') {
-        throw new UnauthorizedException('Invalid token');
-      }
-
       if (error.name === 'TokenExpiredError') {
+        this.logger.warn(`[AUTH_EXPIRED] - ${logDetails}`);
         throw new UnauthorizedException('Token expirado');
       }
 
+      if (error.name === 'JsonWebTokenError') {
+        this.logger.warn(`[AUTH_INVALID] - ${logDetails}`);
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      this.logger.error(`[AUTH_UNKNOWN_ERROR] - ${logDetails}`, error.stack);
       throw new InternalServerErrorException('Token guard error');
     }
   }

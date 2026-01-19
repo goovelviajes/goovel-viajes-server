@@ -19,7 +19,7 @@ import { JourneyModule } from '../journey/journey.module';
     ProfileModule,
     MailModule,
     RatingModule,
-    JourneyModule
+    JourneyModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

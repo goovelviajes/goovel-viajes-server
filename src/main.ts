@@ -1,11 +1,46 @@
-import { NestFactory, Reflector } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
-import 'dotenv/config';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import 'dotenv/config';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
+import 'winston-daily-rotate-file';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger({
+      transports: [
+        // 1. Consola: Para ver los logs mientras desarrollas (con colores)
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.colorize(),
+            winston.format.printf(({ timestamp, level, message, context }) => {
+              return `[${timestamp}] ${level}: [${context}] ${message}`;
+            }),
+          ),
+        }),
+
+        // 2. Archivo para errores: Solo guarda errores críticos
+        new winston.transports.DailyRotateFile({
+          filename: 'logs/error-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          level: 'error', // Solo nivel 'error' hacia abajo
+          maxFiles: '30d', // Conservar por 30 días
+        }),
+
+        // 3. Archivo combinado: Todo lo que pase en la app
+        new winston.transports.DailyRotateFile({
+          filename: 'logs/combined-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          maxFiles: '14d',
+        }),
+      ],
+      level: 'info'
+    })
+  });
+
   app.enableCors({
     origin: process.env.FRONTEND_URL,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
