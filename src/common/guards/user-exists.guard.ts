@@ -19,6 +19,8 @@ export class UserExistsGuard implements CanActivate {
 
         const userExists = await this.userRepository.findOne({ where: { id: user.id } });
 
+        request['userDB'] = userExists;
+
         if (!userExists) throw new UnauthorizedException("User not found")
 
         return true
