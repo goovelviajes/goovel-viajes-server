@@ -38,12 +38,21 @@ export class TermsService {
     async acceptTerms(userId: string) {
         const latestVersion = await this.getLatestVersion();
 
+        await this.verifyIfUserHasAcceptedVersion(userId, latestVersion.id);
+
         const acceptance = this.acceptanceRepository.create({
             userId,
             versionId: latestVersion.id,
             acceptedAt: new Date(),
         });
         return this.acceptanceRepository.save(acceptance);
+    }
+
+    private async verifyIfUserHasAcceptedVersion(userId: string, versionId: string) {
+        const acceptance = await this.acceptanceRepository.findOne({ where: { userId, versionId } });
+        if (acceptance) {
+            throw new ConflictException('User has already accepted this version');
+        }
     }
 
     async hasAcceptedLatest(userId: string): Promise<boolean> {
