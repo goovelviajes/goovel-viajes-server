@@ -282,13 +282,24 @@ export class JourneyService {
   }
 
   private transformJourney(journey: Journey) {
-    const occupiedSeats = journey.bookings
-      ?.filter(b => b.status === BookingStatus.PENDING)
-      .reduce((acc, booking) => acc + booking.seatCount, 0) || 0;
+    // Incluir bookings PENDING y CONFIRMED como participantes activos        
+    const activeBookings = journey.bookings
+      ?.filter(b => b.status === BookingStatus.PENDING || b.status ===
+        BookingStatus.CONFIRMED) || [];
+
+    const occupiedSeats = activeBookings.reduce((acc, booking) => acc +
+      booking.seatCount, 0);
+
+    const passengers = activeBookings.map(b => ({
+      id: b.user.id,
+      name: b.user.name,
+      lastname: b.user.lastname
+    }));
 
     return {
       ...journey,
       realAvailableSeats: journey.availableSeats - occupiedSeats,
+      passengers
     };
   }
 
