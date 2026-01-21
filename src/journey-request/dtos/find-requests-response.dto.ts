@@ -59,4 +59,23 @@ export class FindRequestsResponseDto {
 
     @ApiProperty({ example: 'Paquete con contenido muy fragil', description: 'Descripcion extra del paquete (en caso que el tipo de solicitud sea PACKAGE)' })
     packageDescription: string;
+
+    @ApiProperty({
+        description: 'Usuario que creó la solicitud', example: {
+            id: '5b0b8098-4614-472d-88d7-d380563e6916',
+            name: 'John',
+            lastname: 'Doe',
+            profile: {
+                profileName: 'John Doe'
+            }
+        }
+    })
+    user: {
+        id: string;
+        name: string;
+        lastname: string;
+        profile: {
+            profileName: string;
+        };
+    };
 }

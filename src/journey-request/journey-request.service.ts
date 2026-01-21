@@ -70,11 +70,67 @@ export class JourneyRequestService {
     }
 
     async findAllPendingRequests() {
-        return await this.requestRepository.find({ where: { status: In([RequestStatus.PENDING, RequestStatus.OFFERED]) } });
+        return await this.requestRepository.find({
+            where: {
+                status: In([RequestStatus.PENDING, RequestStatus.OFFERED])
+            },
+            relations: ['user', 'user.profile'],
+            select: {
+                id: true,
+                origin: true,
+                destination: true,
+                requestedTime: true,
+                requestedSeats: true,
+                packageWeight: true,
+                packageLength: true,
+                packageWidth: true,
+                packageHeight: true,
+                packageDescription: true,
+                type: true,
+                proposedPrice: true,
+                status: true,
+                createdAt: true,
+                user: {
+                    id: true,
+                    name: true,
+                    lastname: true,
+                    profile: {
+                        profileName: true
+                    }
+                }
+            }
+        });
     }
 
     async findMyRequests(id: string) {
-        return await this.requestRepository.find({ where: { user: { id } } });
+        return await this.requestRepository.find({
+            where: { user: { id } },
+            relations: ['user', 'user.profile'],
+            select: {
+                id: true,
+                origin: true,
+                destination: true,
+                requestedTime: true,
+                requestedSeats: true,
+                packageWeight: true,
+                packageLength: true,
+                packageWidth: true,
+                packageHeight: true,
+                packageDescription: true,
+                type: true,
+                proposedPrice: true,
+                status: true,
+                createdAt: true,
+                user: {
+                    id: true,
+                    name: true,
+                    lastname: true,
+                    profile: {
+                        profileName: true
+                    }
+                }
+            }
+        });
     }
 
     async cancelJourneyRequest(activeUserId: string, id: string) {
