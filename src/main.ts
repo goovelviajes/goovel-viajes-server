@@ -1,7 +1,9 @@
 import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as compression from 'compression';
 import 'dotenv/config';
+import helmet from 'helmet';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
@@ -47,9 +49,16 @@ async function bootstrap() {
     })
   });
 
+  const logger = new Logger('Bootstrap');
+
+  // --- MIDDLEWARES DE SEGURIDAD Y RENDIMIENTO ---
+  app.use(helmet());
+  app.use(compression());
+
   // CORS Protegido
+  const origin = process.env.FRONTEND_URL;
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: origin ? origin.split(',') : false, // False bloquea si no hay origen definido
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   });
@@ -63,7 +72,7 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger (Opcional: puedes desactivarlo en producción para más seguridad)
+  // Swagger (solo desarrollo)
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Goovel API')
@@ -95,7 +104,6 @@ async function bootstrap() {
   await app.listen(port);
 
   // Log de inicio para saber que todo arrancó bien
-  const logger = new Logger('Bootstrap');
-  logger.log(`Goovel API is running on: http://localhost:${port}/api`);
+  logger.log(`🚀 Goovel API is running`);
 }
 bootstrap();
