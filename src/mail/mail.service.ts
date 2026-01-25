@@ -1,15 +1,18 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MailService {
+    private readonly logger = new Logger(MailService.name);
+
     constructor(private readonly mailerService: MailerService) { }
 
     // MÉTODO DE APOYO: Esto garantiza que Mailtrap no reciba 
     // correos más rápido de lo que permite su plan gratuito.
     private async sleep() {
         if (process.env.NODE_ENV === 'development') {
+            this.logger.debug('Sleeping for 10s to respect Mailtrap rate limits...');
             return new Promise(resolve => setTimeout(resolve, 10000));
         }
     }
@@ -27,9 +30,10 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            this.logger.log(`[MAIL_SENT] Password Reset -> To: ${email}`);
             await this.sleep();
         } catch (error) {
-            console.error('Error al enviar el correo de recuperación:', error);
+            this.logger.error(`[MAIL_ERROR] Password Reset -> To: ${email} - Error: ${error.message}`);
         }
     }
 
@@ -46,9 +50,10 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            this.logger.log(`[MAIL_SENT] Email Confirmation -> To: ${email}`);
             await this.sleep();
         } catch (error) {
-            console.error('Error al enviar el correo de confirmación:', error);
+            this.logger.error(`[MAIL_ERROR] Email Confirmation -> To: ${email} - Error: ${error.message}`);
         }
     }
 
@@ -69,9 +74,10 @@ export class MailService {
                     adminUrl: process.env.FRONTEND_URL + '/admin/reports',
                 },
             });
+            this.logger.warn(`[MAIL_SENT] Admin Alert (Threshold) -> Reported User: ${user.id}`);
             await this.sleep();
         } catch (error) {
-            console.error('Error al enviar el correo de reporte:', error);
+            this.logger.error(`[MAIL_ERROR] Admin Alert (Threshold) -> Error: ${error.message}`);
         }
     }
 
@@ -88,9 +94,10 @@ export class MailService {
                     year: new Date().getFullYear(),
                 },
             });
+            this.logger.log(`[MAIL_SENT] Report Resolved -> To: ${reporterEmail}`);
             await this.sleep();
         } catch (error) {
-            console.error('Error al enviar el email de resolución:', error);
+            this.logger.error(`[MAIL_ERROR] Report Resolved -> To: ${reporterEmail} - Error: ${error.message}`);
         }
     }
 
@@ -107,9 +114,10 @@ export class MailService {
                     reason,
                 },
             });
+            this.logger.log(`[MAIL_SENT] User Banned Notification -> To: ${email}`);
             await this.sleep();
         } catch (error) {
-            console.error('Error al enviar el correo de confirmación:', error);
+            this.logger.error(`[MAIL_ERROR] User Banned Notification -> To: ${email} - Error: ${error.message}`);
         }
     }
 }
