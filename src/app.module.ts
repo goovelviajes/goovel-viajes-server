@@ -26,6 +26,7 @@ import { TermsModule } from './terms/terms.module';
 import { TermsGuard } from './auth/guard/terms.guard';
 import { BanGuard } from './auth/guard/ban.guard';
 import { AppController } from './app.controller';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AppController } from './app.controller';
     ProposalModule,
     MailModule,
     TermsModule,
+    HealthModule,
   ],
   controllers: [
     AppController
