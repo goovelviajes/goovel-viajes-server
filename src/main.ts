@@ -13,7 +13,9 @@ import { Logtail } from '@logtail/node';
 import { LogtailTransport } from '@logtail/winston';
 
 async function bootstrap() {
-  const logtail = new Logtail(process.env.BETTER_STACK_TOKEN);
+  const logtail = new Logtail(process.env.BETTER_STACK_TOKEN, {
+    endpoint: "https://s1695298.eu-nbg-2.betterstackdata.com"
+  });
 
   const app = await NestFactory.create(AppModule, {
     // Configuración de Logs Optimizada
