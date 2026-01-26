@@ -131,19 +131,29 @@ export class ProposalService {
             try {
                 // 1. Buscar y BLOQUEAR la Propuesta
                 // Usamos pessimistic_write para que nadie la modifique mientras decidimos
-                const proposal = await manager.findOne(Proposal, {
+                const baseProposal = await manager.findOne(Proposal, {
                     where: { id: proposalId },
-                    relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user'],
-                    lock: { mode: 'pessimistic_write' },
+                    lock: { mode: 'pessimistic_write' }
                 });
 
-                if (!proposal) {
+                if (!baseProposal) {
                     this.logger.warn(`[PROPOSAL_ACCEPT_NOT_FOUND] - ID: ${proposalId}`);
                     throw new NotFoundException('Proposal not found');
                 }
 
-                // 2. Validaciones de seguridad
-                const request = proposal.journeyRequest;
+                // Cargamos la propuesta con relaciones
+                const fullProposal = await manager.findOne(Proposal, {
+                    where: { id: proposalId },
+                    relations: ['journeyRequest', 'vehicle', 'driver', 'journeyRequest.user'],
+                });
+
+                // Validaciones de seguridad
+                const request = fullProposal.journeyRequest;
+
+                if (!request || !request.user) {
+                    this.logger.error(`[PROPOSAL_DATA_INCOMPLETE] - Data missing for Proposal: ${proposalId}`);
+                    throw new InternalServerErrorException("Incomplete proposal data");
+                }
 
                 // Verificar que quien acepta es el dueño del request
                 if (request.user.id !== passengerId) {
@@ -152,9 +162,9 @@ export class ProposalService {
                 }
 
                 // Verificar que la propuesta esté vigente
-                if (proposal.status !== ProposalStatus.SENT) {
-                    this.logger.warn(`[PROPOSAL_ACCEPT_INVALID_STATUS] - Proposal: ${proposalId} Status: ${proposal.status}`);
-                    throw new ConflictException(`Cannot accept this proposal because it is in state ${proposal.status}`);
+                if (fullProposal.status !== ProposalStatus.SENT) {
+                    this.logger.warn(`[PROPOSAL_ACCEPT_INVALID_STATUS] - Proposal: ${proposalId} Status: ${fullProposal.status}`);
+                    throw new ConflictException(`Cannot accept this proposal because it is in state ${fullProposal.status}`);
                 }
 
                 // Verificar que el request siga abierto
@@ -165,14 +175,15 @@ export class ProposalService {
 
                 // 3. Crear el VIAJE (Journey)
                 const newJourney = manager.create(Journey, {
-                    user: { id: proposal.driver.id },
-                    acceptedProposal: proposal,
+                    user: { id: fullProposal.driver.id },
+                    acceptedProposal: fullProposal,
                     origin: request.origin,
                     destination: request.destination,
                     departureTime: request.requestedTime,
                     status: JourneyStatus.PENDING,
-                    vehicle: proposal.vehicle,
-                    availableSeats: (proposal.vehicle.capacity - request.requestedSeats),
+                    vehicle: fullProposal.vehicle,
+                    availableSeats: (fullProposal.vehicle.capacity - request.requestedSeats),
+                    type: request.type,
                     isShipping: request.type === JourneyType.PACKAGE,
                     pricePerSeat: request.proposedPrice,
                     totalAmount: request.proposedPrice * request.requestedSeats,
@@ -191,8 +202,8 @@ export class ProposalService {
                 await manager.save(newBooking);
 
                 // 5. Actualizar Estados
-                proposal.status = ProposalStatus.ACCEPTED;
-                await manager.save(proposal);
+                fullProposal.status = ProposalStatus.ACCEPTED;
+                await manager.save(fullProposal);
 
                 request.status = RequestStatus.CLOSED;
                 await manager.save(request);
@@ -203,7 +214,7 @@ export class ProposalService {
                     { status: ProposalStatus.REJECTED }
                 );
 
-                this.logger.log(`[PROPOSAL_ACCEPTED_SUCCESS] - Journey: ${savedJourney.id} created from Proposal: ${proposal.id}. Other proposals rejected: ${rejectionResult.affected}`);
+                this.logger.log(`[PROPOSAL_ACCEPTED_SUCCESS] - Journey: ${savedJourney.id} created from Proposal: ${fullProposal.id}. Other proposals rejected: ${rejectionResult.affected}`);
                 return { message: 'Journey confirmed successfully', journeyId: savedJourney.id };
             } catch (error) {
                 if (error instanceof HttpException) throw error;
