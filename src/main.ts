@@ -13,51 +13,50 @@ import { Logtail } from '@logtail/node';
 import { LogtailTransport } from '@logtail/winston';
 
 async function bootstrap() {
-  const logtail = new Logtail(process.env.BETTER_STACK_TOKEN, {
-    endpoint: "https://s1695298.eu-nbg-2.betterstackdata.com"
-  });
+  const transports: winston.transport[] = [
+    // Consola: Legible para humanos
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.colorize(),
+        winston.format.printf(({ timestamp, level, message, context }) => {
+          return `[${timestamp}] ${level}: [${context || 'App'}] ${message}`;
+        }),
+      ),
+    }),
+
+    // Archivos: Logs locales rotativos
+    new winston.transports.DailyRotateFile({
+      filename: 'logs/error-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'error',
+      maxFiles: '30d',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json(),
+      ),
+    }),
+
+    new winston.transports.DailyRotateFile({
+      filename: 'logs/combined-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      maxFiles: '14d',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json(),
+      ),
+    }),
+  ];
+
+  if (process.env.NODE_ENV === 'production') {
+    const logtail = new Logtail(process.env.BETTER_STACK_TOKEN, {
+      endpoint: "https://s1695298.eu-nbg-2.betterstackdata.com"
+    });
+    transports.push(new LogtailTransport(logtail));
+  }
 
   const app = await NestFactory.create(AppModule, {
-    // Configuración de Logs Optimizada
-    logger: WinstonModule.createLogger({
-      transports: [
-        // Consola: Legible para humanos
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.colorize(),
-            winston.format.printf(({ timestamp, level, message, context }) => {
-              return `[${timestamp}] ${level}: [${context || 'App'}] ${message}`;
-            }),
-          ),
-        }),
-
-        // Enviar a Better Stack (Nube)
-        new LogtailTransport(logtail),
-
-        // Archivos: Formato JSON para análisis profesional
-        new winston.transports.DailyRotateFile({
-          filename: 'logs/error-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          level: 'error',
-          maxFiles: '30d',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
-
-        new winston.transports.DailyRotateFile({
-          filename: 'logs/combined-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          maxFiles: '14d',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
-      ],
-    })
+    logger: WinstonModule.createLogger({ transports })
   });
 
   const logger = new Logger('Bootstrap');
