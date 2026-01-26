@@ -9,8 +9,12 @@ import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { Logtail } from '@logtail/node';
+import { LogtailTransport } from '@logtail/winston';
 
 async function bootstrap() {
+  const logtail = new Logtail("945urd4nq3qzwfrfHijjzyhg");
+
   const app = await NestFactory.create(AppModule, {
     // Configuración de Logs Optimizada
     logger: WinstonModule.createLogger({
@@ -25,6 +29,10 @@ async function bootstrap() {
             }),
           ),
         }),
+
+        // Enviar a Better Stack (Nube)
+        new LogtailTransport(logtail),
+
         // Archivos: Formato JSON para análisis profesional
         new winston.transports.DailyRotateFile({
           filename: 'logs/error-%DATE%.log',
@@ -36,6 +44,7 @@ async function bootstrap() {
             winston.format.json(),
           ),
         }),
+
         new winston.transports.DailyRotateFile({
           filename: 'logs/combined-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
