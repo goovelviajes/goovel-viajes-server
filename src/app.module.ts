@@ -25,7 +25,6 @@ import { VehicleModule } from './vehicle/vehicle.module';
 import { TermsModule } from './terms/terms.module';
 import { TermsGuard } from './auth/guard/terms.guard';
 import { BanGuard } from './auth/guard/ban.guard';
-import { AppController } from './app.controller';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -59,9 +58,6 @@ import { HealthModule } from './health/health.module';
     MailModule,
     TermsModule,
     HealthModule,
-  ],
-  controllers: [
-    AppController
   ],
   providers: [
     MailService,
